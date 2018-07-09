@@ -38,60 +38,130 @@ struct property
   gsize                                 m_tuple_offset;
 };
 
-static void
+static int
 bind(
   struct property*const                 o_property,
   GtkBuilder*const                      io_builder)
 {
+  int                                   l_exit;
 
   memset(o_property, 0, sizeof(*o_property));
+  l_exit= -1;
 
   do
   {
+
     (*o_property).m_search=
       GTK_SEARCH_ENTRY(gtk_builder_get_object(io_builder, "receipt_index_search"));
+
+    if (0 == (*o_property).m_search)
+    {
+      break;
+    }
 
     (*o_property).m_search_receipt_id=
       GTK_RADIO_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_search_receipt_id"));
 
+    if (0 == (*o_property).m_search_receipt_id)
+    {
+      break;
+    }
+
     (*o_property).m_search_sales_id=
       GTK_RADIO_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_search_sales_id"));
+
+    if (0 == (*o_property).m_search_sales_id)
+    {
+      break;
+    }
 
     (*o_property).m_search_received_date=
       GTK_RADIO_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_search_received_date"));
 
+    if (0 == (*o_property).m_search_received_date)
+    {
+      break;
+    }
+
     (*o_property).m_search_reference=
       GTK_RADIO_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_search_reference"));
+
+    if (0 == (*o_property).m_search_reference)
+    {
+      break;
+    }
 
     (*o_property).m_treeview=
       GTK_TREE_VIEW(gtk_builder_get_object(io_builder, "receipt_index_treeview"));
 
+    if (0 == (*o_property).m_treeview)
+    {
+      break;
+    }
+
     (*o_property).m_liststore=
       GTK_LIST_STORE(gtk_builder_get_object(io_builder, "receipt_index_liststore"));
+
+    if (0 == (*o_property).m_liststore)
+    {
+      break;
+    }
 
     (*o_property).m_nav_first=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_first_button"));
 
+    if (0 == (*o_property).m_nav_first)
+    {
+      break;
+    }
+
     (*o_property).m_nav_previous=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_previous_button"));
+
+    if (0 == (*o_property).m_nav_previous)
+    {
+      break;
+    }
 
     (*o_property).m_nav_next=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_next_button"));
 
+    if (0 == (*o_property).m_nav_next)
+    {
+      break;
+    }
+
     (*o_property).m_nav_last=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_last_button"));
+
+    if (0 == (*o_property).m_nav_last)
+    {
+      break;
+    }
 
     (*o_property).m_limit=
       GTK_SPIN_BUTTON(gtk_builder_get_object(io_builder, "receipt_index_limit"));
 
+    if (0 == (*o_property).m_limit)
+    {
+      break;
+    }
+
     (*o_property).m_treeview_search=
       GTK_SEARCH_ENTRY(gtk_builder_get_object(io_builder, "receipt_index_treeview_search"));
 
+    if (0 == (*o_property).m_treeview_search)
+    {
+      break;
+    }
+
     gtk_tree_view_set_search_entry((*o_property).m_treeview, GTK_ENTRY((*o_property).m_treeview_search));
+
+    l_exit= 0;
 
   }while(0);
 
-  return;
+  return l_exit;
 }
 
 static void
@@ -607,14 +677,14 @@ receipt_index_form(
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
-  struct property                       l_property;
+  struct property*                      l_property;
 
   memset(o_receipt_id, 0, size_pg_big_int);
-  memset(&l_property, 0, sizeof(l_property));
 
   l_dialog= 0;
   l_error= 0;
   l_exit= -1;
+  l_property= (struct property*)g_malloc0(sizeof(*l_property));
 
   do
   {
@@ -633,7 +703,17 @@ receipt_index_form(
 
     gtk_window_set_transient_for(GTK_WINDOW(l_dialog), io_parent);
 
-    bind(&l_property, io_builder);
+    l_exit= bind(l_property, io_builder);
+
+    if (l_exit)
+    {
+      l_error= g_error_new(
+        domain_general,
+        error_generic,
+        "Unable to load dialog: '%s'",
+        "dialog_receipt_index");
+      break;
+    }
 
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
     g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
@@ -650,12 +730,14 @@ receipt_index_form(
       break;
     }
 
-    copy(o_receipt_id, &l_property);
+    copy(o_receipt_id, l_property);
     l_exit= 0;
 
   }while(0);
 
-  PQclear(l_property.m_result);
+  PQclear((*l_property).m_result);
+
+  g_free(l_property);
 
   if (l_dialog)
   {

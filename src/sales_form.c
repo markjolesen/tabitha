@@ -49,13 +49,15 @@ struct property
   struct calendar                       m_cal_due_date;
 };
 
-static void
+static int
 bind(
   struct property*const                 o_property,
   GtkBuilder*const                      io_builder)
 {
+  int                                   l_exit;
 
   memset(o_property, 0, sizeof(*o_property));
+  l_exit= -1;
 
   do
   {
@@ -63,60 +65,152 @@ bind(
     (*o_property).m_sales_id=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_sales_id"));
 
+    if (0 == (*o_property).m_sales_id)
+    {
+      break;
+    }
+
     (*o_property).m_sales_type=
       GTK_COMBO_BOX_TEXT(gtk_builder_get_object(io_builder, "sales_sales_type"));
+
+    if (0 == (*o_property).m_sales_type)
+    {
+      break;
+    }
 
     (*o_property).m_sales_date_button=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "sales_sales_date_button"));
 
+    if (0 == (*o_property).m_sales_date_button)
+    {
+      break;
+    }
+
     (*o_property).m_billing_id=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_billing_id"));
+
+    if (0 == (*o_property).m_billing_id)
+    {
+      break;
+    }
 
     (*o_property).m_service_contact=
       GTK_TEXT_VIEW(gtk_builder_get_object(io_builder, "sales_service_contact"));
 
+    if (0 == (*o_property).m_service_contact)
+    {
+      break;
+    }
+
     (*o_property).m_sales_date=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_sales_date"));
+
+    if (0 == (*o_property).m_sales_date)
+    {
+      break;
+    }
 
     (*o_property).m_start_date=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_start_date"));
 
+    if (0 == (*o_property).m_start_date)
+    {
+      break;
+    }
+
     (*o_property).m_start_date_button=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "sales_start_date_button"));
+
+    if (0 == (*o_property).m_start_date_button)
+    {
+      break;
+    }
 
     (*o_property).m_completed_date=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_completed_date"));
 
+    if (0 == (*o_property).m_completed_date)
+    {
+      break;
+    }
+
     (*o_property).m_completed_date_button=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "sales_completed_date_button"));
+
+    if (0 == (*o_property).m_completed_date_button)
+    {
+      break;
+    }
 
     (*o_property).m_due_date=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_due_date"));
 
+    if (0 == (*o_property).m_due_date)
+    {
+      break;
+    }
+
     (*o_property).m_due_date_button=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "sales_due_date_button"));
+
+    if (0 == (*o_property).m_due_date_button)
+    {
+      break;
+    }
 
     (*o_property).m_customer_po=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_customer_po"));
 
+    if (0 == (*o_property).m_customer_po)
+    {
+      break;
+    }
+
     (*o_property).m_discount=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_discount"));
+
+    if (0 == (*o_property).m_discount)
+    {
+      break;
+    }
 
     (*o_property).m_notes=
       GTK_TEXT_VIEW(gtk_builder_get_object(io_builder, "sales_notes"));
 
+    if (0 == (*o_property).m_notes)
+    {
+      break;
+    }
+
     (*o_property).m_notes_internal=
       GTK_TEXT_VIEW(gtk_builder_get_object(io_builder, "sales_notes_internal"));
+
+    if (0 == (*o_property).m_notes_internal)
+    {
+      break;
+    }
 
     (*o_property).m_treeview=
       GTK_TREE_VIEW(gtk_builder_get_object(io_builder, "sales_detail_treeview"));
 
+    if (0 == (*o_property).m_treeview)
+    {
+      break;
+    }
+
     (*o_property).m_liststore=
       GTK_LIST_STORE(gtk_builder_get_object(io_builder, "sales_detail_liststore"));
 
+    if (0 == (*o_property).m_liststore)
+    {
+      break;
+    }
+
+    l_exit= 0;
+
   }while(0);
 
-  return;
+  return l_exit;
 }
 
 static void
@@ -154,6 +248,8 @@ copy(
   GtkTextIter                           l_end;
   GtkTextIter                           l_start;
   gchar const*                          l_text;
+
+  memset(io_object, 0, sizeof(*io_object));
 
   l_text= gtk_entry_get_text((*i_property).m_sales_id);
   g_strlcpy((*io_object).m_sales_id, l_text, sizeof((*io_object).m_sales_id));
@@ -259,7 +355,7 @@ save(
 {
   gboolean                              l_bool;
   gchar*                                l_description;
-  struct sales_detail                   l_detail;
+  struct sales_detail*                  l_detail;
   GError*                               l_error;
   int                                   l_exit;
   GtkTreeIter                           l_iter;
@@ -267,14 +363,14 @@ save(
   gchar*                                l_product_id;
   struct property*                      l_property;
   gchar*                                l_quantity;
-  struct sales                          l_sales;
+  struct sales*                         l_sales;
   struct session*                       l_session;
   gchar*                                l_unit_price;
   gchar*                                l_line_number_hidden;
   gchar*                                l_line_number;
 
-  memset(&l_detail, 0, sizeof(l_detail));
-  memset(&l_sales, 0, sizeof(l_sales));
+  l_detail= (struct sales_detail*)g_malloc0(sizeof(*l_detail));
+  l_sales= (struct sales*)g_malloc0(sizeof(*l_sales));
   l_description= 0;
   l_product_id= 0;
   l_quantity= 0;
@@ -286,23 +382,23 @@ save(
   l_property= (struct property*)g_object_get_data(G_OBJECT(io_dialog), "property");
   l_session= (struct session*)g_object_get_data(G_OBJECT(io_dialog), "session");
 
-  copy(&l_sales, l_property);
-  sales_trim(&l_sales);
+  copy(l_sales, l_property);
+  sales_trim(l_sales);
 
   do
   {
 
-    if (0 == l_sales.m_sales_id[0])
+    if (0 == (*l_sales).m_sales_id[0])
     {
-      l_exit= sales_insert(&l_error, l_sales.m_sales_id, l_session, &l_sales);
+      l_exit= sales_insert(&l_error, (*l_sales).m_sales_id, l_session, l_sales);
       if (0 == l_exit)
       {
-        gtk_entry_set_text((*l_property).m_sales_id, l_sales.m_sales_id);
+        gtk_entry_set_text((*l_property).m_sales_id, (*l_sales).m_sales_id);
       }
     }
     else
     {
-      l_exit= sales_update(&l_error, l_session, &l_sales);
+      l_exit= sales_update(&l_error, l_session, l_sales);
     }
 
     if (l_exit)
@@ -338,20 +434,20 @@ save(
         store_col_unit_price, &l_unit_price,
         -1);
 
-      g_strlcpy(l_detail.m_line_number, l_line_number, sizeof(l_detail.m_line_number));
-      g_strlcpy(l_detail.m_product_id, l_product_id, sizeof(l_detail.m_product_id));
-      g_strlcpy(l_detail.m_description, l_description, sizeof(l_detail.m_description));
-      g_strlcpy(l_detail.m_quantity, l_quantity, sizeof(l_detail.m_quantity));
-      g_strlcpy(l_detail.m_unit_price, l_unit_price, sizeof(l_detail.m_unit_price));
-      sales_detail_trim(&l_detail);
+      g_strlcpy((*l_detail).m_line_number, l_line_number, sizeof((*l_detail).m_line_number));
+      g_strlcpy((*l_detail).m_product_id, l_product_id, sizeof((*l_detail).m_product_id));
+      g_strlcpy((*l_detail).m_description, l_description, sizeof((*l_detail).m_description));
+      g_strlcpy((*l_detail).m_quantity, l_quantity, sizeof((*l_detail).m_quantity));
+      g_strlcpy((*l_detail).m_unit_price, l_unit_price, sizeof((*l_detail).m_unit_price));
+      sales_detail_trim(l_detail);
 
       if (0 == l_line_number_hidden[0])
       {
-        l_exit= sales_detail_insert(&l_error, l_session, l_sales.m_sales_id, &l_detail);
+        l_exit= sales_detail_insert(&l_error, l_session, (*l_sales).m_sales_id, l_detail);
       }
       else
       {
-        l_exit= sales_detail_update(&l_error, l_session, l_sales.m_sales_id, l_line_number_hidden, &l_detail);
+        l_exit= sales_detail_update(&l_error, l_session, (*l_sales).m_sales_id, l_line_number_hidden, l_detail);
       }
 
       gtk_list_store_set(
@@ -372,6 +468,8 @@ save(
 
   }while(0);
 
+  g_free(l_detail);
+  g_free(l_sales);
   g_free(l_description);
   g_free(l_product_id);
   g_free(l_quantity);
@@ -447,20 +545,20 @@ on_sales_index_button_clicked(
 {
   GtkBuilder*                           l_builder;
   struct cursor                         l_cursor;
-  struct sales_detail                   l_detail;
+  struct sales_detail*                  l_detail;
   GtkDialog*                            l_dialog;
   gboolean                              l_eof;
   GError*                               l_error;
   int                                   l_exit;
   GtkTreeIter                           l_iter;
   struct property*                      l_property;
-  struct sales                          l_sales;
+  struct sales*                         l_sales;
   gchar                                 l_sales_id[size_pg_big_int];
   struct session*                       l_session;
 
+  l_detail= (struct sales_detail*)g_malloc0(sizeof(*l_detail));
+  l_sales= (struct sales*)g_malloc0(sizeof(*l_sales));
   cursor_assign(&l_cursor);
-  memset(&l_sales, 0, sizeof(l_sales));
-  memset(l_sales_id, 0, sizeof(l_sales_id));
   l_error= 0;
 
   l_dialog= GTK_DIALOG(GTK_WIDGET(io_user_data));
@@ -480,20 +578,20 @@ on_sales_index_button_clicked(
 
     set_defaults(l_property);
 
-    l_exit= sales_fetch(&l_error, &l_sales, l_session, l_sales_id);    
+    l_exit= sales_fetch(&l_error, l_sales, l_session, l_sales_id);    
 
     if (l_exit)
     {
       break;
     }
 
-    set(l_property, &l_sales);
+    set(l_property, l_sales);
 
     l_exit= sales_detail_fetch_query(
       &l_error,
       &l_cursor,
       l_session,
-      l_sales.m_sales_id);
+      (*l_sales).m_sales_id);
 
     if (l_exit)
     {
@@ -503,7 +601,7 @@ on_sales_index_button_clicked(
     do
     {
 
-      l_eof= sales_detail_fetch_next(&l_detail, &l_cursor);
+      l_eof= sales_detail_fetch_next(l_detail, &l_cursor);
 
       if (l_eof)
       {
@@ -515,18 +613,20 @@ on_sales_index_button_clicked(
       gtk_list_store_set(
         (*l_property).m_liststore,
         &l_iter,
-        store_col_line_number_hidden, l_detail.m_line_number,
-        store_col_line_number, l_detail.m_line_number,
-        store_col_product_id, l_detail.m_product_id,
-        store_col_description, l_detail.m_description,
-        store_col_quantity, l_detail.m_quantity,
-        store_col_unit_price, l_detail.m_unit_price,
+        store_col_line_number_hidden, (*l_detail).m_line_number,
+        store_col_line_number, (*l_detail).m_line_number,
+        store_col_product_id, (*l_detail).m_product_id,
+        store_col_description, (*l_detail).m_description,
+        store_col_quantity, (*l_detail).m_quantity,
+        store_col_unit_price, (*l_detail).m_unit_price,
         -1);
 
     }while(1);
 
   }while(0);
 
+  g_free(l_detail);
+  g_free(l_sales);
   cursor_discharge(&l_cursor);
 
   if (l_error)
@@ -574,7 +674,7 @@ on_sales_service_contact_index_button_clicked(
 {
   GtkBuilder*                           l_builder;
   GtkTextBuffer*                        l_buffer;
-  struct contact                        l_contact;
+  struct contact*                       l_contact;
   gchar                                 l_contact_id[size_contact_id];
   GtkDialog*                            l_dialog;
   GError*                               l_error;
@@ -583,7 +683,7 @@ on_sales_service_contact_index_button_clicked(
   struct property*                      l_property;
   struct session*                       l_session;
 
-  memset(&l_contact, 0, sizeof(l_contact));
+  l_contact= (struct contact*)g_malloc0(sizeof(*l_contact));
   memset(l_contact_id, 0, size_contact_id);
 
   l_error= 0;
@@ -591,18 +691,18 @@ on_sales_service_contact_index_button_clicked(
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
   l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
   l_builder= GTK_BUILDER(g_object_get_data(G_OBJECT(l_dialog), "builder"));
-  
-  l_exit= contact_index_form(l_contact_id, l_session, GTK_WINDOW(l_dialog), l_builder);
 
   do
   {
+
+    l_exit= contact_index_form(l_contact_id, l_session, GTK_WINDOW(l_dialog), l_builder);
 
     if (l_exit)
     {
       break;
     }
 
-    l_exit= contact_fetch(&l_error, &l_contact, l_session, l_contact_id);
+    l_exit= contact_fetch(&l_error, l_contact, l_session, l_contact_id);
 
     if (l_exit)
     {
@@ -620,19 +720,21 @@ on_sales_service_contact_index_button_clicked(
       "%s%s"
       "%s%s"
       "%s%s %s %s\n",
-      l_contact.m_company_name, (l_contact.m_company_name[0] ? "\n" : ""),
-      l_contact.m_first_name, l_contact.m_last_name,
-      l_contact.m_street1, (l_contact.m_street1[0] ? "\n" : ""),
-      l_contact.m_street2, (l_contact.m_street2[0] ? "\n" : ""),
-      l_contact.m_street3, (l_contact.m_street3[0] ? "\n" : ""),
-      l_contact.m_city, (l_contact.m_city[0] ? "," : ""),
-      l_contact.m_state, l_contact.m_zipcode);
+      (*l_contact).m_company_name, ((*l_contact).m_company_name[0] ? "\n" : ""),
+      (*l_contact).m_first_name, (*l_contact).m_last_name,
+      (*l_contact).m_street1, ((*l_contact).m_street1[0] ? "\n" : ""),
+      (*l_contact).m_street2, ((*l_contact).m_street2[0] ? "\n" : ""),
+      (*l_contact).m_street3, ((*l_contact).m_street3[0] ? "\n" : ""),
+      (*l_contact).m_city, ((*l_contact).m_city[0] ? "," : ""),
+      (*l_contact).m_state, (*l_contact).m_zipcode);
 
       l_buffer= gtk_text_view_get_buffer((*l_property).m_service_contact);
       gtk_text_buffer_set_text(l_buffer, l_text, -1);
       g_free(l_text);
 
   }while(0);
+
+  g_free(l_contact);
 
   if (l_error)
   {
@@ -840,7 +942,7 @@ on_sales_detail_add_button_clicked(
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
-  struct sales_detail                   l_detail;
+  struct sales_detail*                  l_detail;
   GtkDialog*                            l_dialog;
   int                                   l_exit;
   GtkTreeIter                           l_iter;
@@ -848,7 +950,7 @@ on_sales_detail_add_button_clicked(
   struct property*                      l_property;
   struct session*                       l_session;
 
-  memset(&l_detail, 0, sizeof(l_detail));
+  l_detail= (struct sales_detail*)g_malloc0(sizeof(*l_detail));
 
   l_dialog= GTK_DIALOG(io_user_data);
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
@@ -858,7 +960,7 @@ on_sales_detail_add_button_clicked(
   do
   {
 
-    l_exit= sales_detail_form(&l_detail, l_session, GTK_WINDOW(l_dialog), l_builder);
+    l_exit= sales_detail_form(l_detail, l_session, GTK_WINDOW(l_dialog), l_builder);
 
     if (l_exit)
     {
@@ -867,21 +969,23 @@ on_sales_detail_add_button_clicked(
 
     l_lines= gtk_tree_model_iter_n_children(GTK_TREE_MODEL((*l_property).m_liststore), 0);
 
-    g_snprintf(l_detail.m_line_number, sizeof(l_detail.m_line_number), "%u", l_lines);
+    g_snprintf((*l_detail).m_line_number, sizeof((*l_detail).m_line_number), "%u", l_lines);
 
     gtk_list_store_append((*l_property).m_liststore, &l_iter);
     gtk_list_store_set(
       (*l_property).m_liststore,
       &l_iter,
       store_col_line_number_hidden, "",
-      store_col_line_number, l_detail.m_line_number,
-      store_col_product_id, l_detail.m_product_id,
-      store_col_description, l_detail.m_description,
-      store_col_quantity, l_detail.m_quantity,
-      store_col_unit_price, l_detail.m_unit_price,
+      store_col_line_number, (*l_detail).m_line_number,
+      store_col_product_id, (*l_detail).m_product_id,
+      store_col_description, (*l_detail).m_description,
+      store_col_quantity, (*l_detail).m_quantity,
+      store_col_unit_price, (*l_detail).m_unit_price,
       -1);
 
   }while(0);
+
+  g_free(l_detail);
 
   return;
 }
@@ -1025,7 +1129,7 @@ on_sales_detail_edit_button_clicked(
 {
   GtkBuilder*                           l_builder;
   gchar*                                l_description;
-  struct sales_detail                   l_detail;
+  struct sales_detail*                  l_detail;
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
@@ -1038,6 +1142,8 @@ on_sales_detail_edit_button_clicked(
   GtkTreeSelection*                     l_selection;
   struct session*                       l_session;
   gchar*                                l_unit_price;
+
+  l_detail= (struct sales_detail*)g_malloc0(sizeof(*l_detail));
 
   l_error= 0;
   l_dialog= GTK_DIALOG(io_user_data);
@@ -1066,17 +1172,17 @@ on_sales_detail_edit_button_clicked(
       store_col_unit_price, &l_unit_price,
       -1);
 
-    g_strlcpy(l_detail.m_product_id, l_product_id, sizeof(l_detail.m_product_id));
-    g_strlcpy(l_detail.m_description, l_description, sizeof(l_detail.m_description));
-    g_strlcpy(l_detail.m_quantity, l_quantity, sizeof(l_detail.m_quantity));
-    g_strlcpy(l_detail.m_unit_price, l_unit_price, sizeof(l_detail.m_unit_price));
+    g_strlcpy((*l_detail).m_product_id, l_product_id, sizeof((*l_detail).m_product_id));
+    g_strlcpy((*l_detail).m_description, l_description, sizeof((*l_detail).m_description));
+    g_strlcpy((*l_detail).m_quantity, l_quantity, sizeof((*l_detail).m_quantity));
+    g_strlcpy((*l_detail).m_unit_price, l_unit_price, sizeof((*l_detail).m_unit_price));
 
     g_free(l_product_id);
     g_free(l_description);
     g_free(l_quantity);
     g_free(l_unit_price);
 
-    l_exit= sales_detail_form(&l_detail, l_session, GTK_WINDOW(l_dialog), l_builder);
+    l_exit= sales_detail_form(l_detail, l_session, GTK_WINDOW(l_dialog), l_builder);
 
     if (l_exit)
     {
@@ -1086,13 +1192,15 @@ on_sales_detail_edit_button_clicked(
     gtk_list_store_set(
       (*l_property).m_liststore,
       &l_iter,
-      store_col_product_id, l_detail.m_product_id,
-      store_col_description, l_detail.m_description,
-      store_col_quantity, l_detail.m_quantity,
-      store_col_unit_price, l_detail.m_unit_price,
+      store_col_product_id, (*l_detail).m_product_id,
+      store_col_description, (*l_detail).m_description,
+      store_col_quantity, (*l_detail).m_quantity,
+      store_col_unit_price, (*l_detail).m_unit_price,
       -1);
 
   }while(0);
+
+  g_free(l_detail);
 
   if (l_error)
   {
@@ -1112,7 +1220,7 @@ on_sales_detail_treeview_row_activated(
 {
   GtkBuilder*                           l_builder;
   gchar*                                l_description;
-  struct sales_detail                   l_detail;
+  struct sales_detail*                  l_detail;
   GtkDialog*                            l_dialog;
   int                                   l_exit;
   GtkTreeIter                           l_iter;
@@ -1124,7 +1232,7 @@ on_sales_detail_treeview_row_activated(
   struct session*                       l_session;
   gchar*                                l_unit_price;
 
-  memset(&l_detail, 0, sizeof(l_detail));
+  l_detail= (struct sales_detail*)g_malloc0(sizeof(*l_detail));
 
   l_dialog= GTK_DIALOG(io_user_data);
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
@@ -1152,17 +1260,17 @@ on_sales_detail_treeview_row_activated(
       store_col_unit_price, &l_unit_price,
       -1);
 
-    g_strlcpy(l_detail.m_product_id, l_product_id, sizeof(l_detail.m_product_id));
-    g_strlcpy(l_detail.m_description, l_description, sizeof(l_detail.m_description));
-    g_strlcpy(l_detail.m_quantity, l_quantity, sizeof(l_detail.m_quantity));
-    g_strlcpy(l_detail.m_unit_price, l_unit_price, sizeof(l_detail.m_unit_price));
+    g_strlcpy((*l_detail).m_product_id, l_product_id, sizeof((*l_detail).m_product_id));
+    g_strlcpy((*l_detail).m_description, l_description, sizeof((*l_detail).m_description));
+    g_strlcpy((*l_detail).m_quantity, l_quantity, sizeof((*l_detail).m_quantity));
+    g_strlcpy((*l_detail).m_unit_price, l_unit_price, sizeof((*l_detail).m_unit_price));
 
     g_free(l_product_id);
     g_free(l_description);
     g_free(l_quantity);
     g_free(l_unit_price);
 
-    l_exit= sales_detail_form(&l_detail, l_session, GTK_WINDOW(l_dialog), l_builder);
+    l_exit= sales_detail_form(l_detail, l_session, GTK_WINDOW(l_dialog), l_builder);
 
     if (l_exit)
     {
@@ -1172,13 +1280,15 @@ on_sales_detail_treeview_row_activated(
     gtk_list_store_set(
       (*l_property).m_liststore,
       &l_iter,
-      store_col_product_id, l_detail.m_product_id,
-      store_col_description, l_detail.m_description,
-      store_col_quantity, l_detail.m_quantity,
-      store_col_unit_price, l_detail.m_unit_price,
+      store_col_product_id, (*l_detail).m_product_id,
+      store_col_description, (*l_detail).m_description,
+      store_col_quantity, (*l_detail).m_quantity,
+      store_col_unit_price, (*l_detail).m_unit_price,
       -1);
 
   }while(0);
+
+  g_free(l_detail);
 
   return;
 }
@@ -1192,11 +1302,12 @@ sales_form(
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
-  struct property                       l_property;
+  struct property*                      l_property;
 
   l_dialog= 0;
   l_error= 0;
   l_exit= -1;
+  l_property= (struct property*)g_malloc0(sizeof(*l_property));
 
   do
   {
@@ -1215,8 +1326,19 @@ sales_form(
 
     gtk_window_set_transient_for(GTK_WINDOW(l_dialog), io_parent);
 
-    bind(&l_property, io_builder);
-    set_defaults(&l_property);
+    l_exit= bind(l_property, io_builder);
+
+    if (l_exit)
+    {
+      l_error= g_error_new(
+        domain_general,
+        error_generic,
+        "Unable to load dialog: '%s'",
+        "dialog_sales");
+      break;
+    }
+
+    set_defaults(l_property);
 
     g_object_set_data(G_OBJECT(l_dialog), "builder", io_builder);
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
@@ -1229,6 +1351,8 @@ sales_form(
     l_exit= 0;
 
   }while(0);
+
+  g_free(l_property);
 
   if (l_dialog)
   {

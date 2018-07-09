@@ -16,13 +16,15 @@ struct property
   GtkTextView*                          m_textview;
 };
 
-static void
+static int
 bind(
   struct property*const                 o_property,
   GtkBuilder*const                      io_builder)
 {
+  int                                   l_exit;
 
   memset(o_property, 0, sizeof(*o_property));
+  l_exit= -1;
 
   do
   {
@@ -30,9 +32,16 @@ bind(
     (*o_property).m_textview=
       GTK_TEXT_VIEW(gtk_builder_get_object(io_builder, "edit_textview"));
 
+    if (0 == (*o_property).m_textview)
+    {
+      break;
+    }
+
+    l_exit= 0;
+
   }while(0);
 
-  return;
+  return l_exit;
 }
 
 static void
@@ -83,11 +92,12 @@ internal_form(
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
-  struct property                       l_property;
+  struct property*                      l_property;
 
   l_dialog= 0;
   l_error= 0;
   l_exit= -1;
+  l_property= (struct property*)g_malloc0(sizeof(*l_property));
 
   do
   {
@@ -106,8 +116,19 @@ internal_form(
 
     gtk_window_set_transient_for(GTK_WINDOW(l_dialog), io_parent);
 
-    bind(&l_property, io_builder);
-    set(&l_property, (*io_text));
+    l_exit= bind(l_property, io_builder);
+
+    if (l_exit)
+    {
+      l_error= g_error_new(
+        domain_general,
+        error_generic,
+        "Unable to load dialog: '%s'",
+        "dialog_edit");
+      break;
+    }
+
+    set(l_property, (*io_text));
 
     g_object_set_data(G_OBJECT(l_dialog), "builder", io_builder);
     g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
@@ -122,10 +143,12 @@ internal_form(
       break;
     }
 
-    copy(io_text, &l_property);
+    copy(io_text, l_property);
     l_exit= 0;
 
   }while(0);
+
+  g_free(l_property);
 
   if (l_dialog)
   {

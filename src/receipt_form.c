@@ -24,37 +24,72 @@ struct property
   struct calendar                       m_cal_received_date;
 };
 
-static void
+static int
 bind(
   struct property*const                 o_property,
   GtkBuilder*const                      io_builder)
 {
+  int                                   l_exit;
 
   memset(o_property, 0, sizeof(*o_property));
+  l_exit= -1;
 
   do
   {
+
     (*o_property).m_receipt_id=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "receipt_receipt_id"));
+
+    if (0 == (*o_property).m_receipt_id)
+    {
+      break;
+    }
 
     (*o_property).m_sales_id=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "receipt_sales_id"));
 
+    if (0 == (*o_property).m_sales_id)
+    {
+      break;
+    }
+
     (*o_property).m_received_date_button=
       GTK_BUTTON(gtk_builder_get_object(io_builder, "receipt_received_date_button"));
+
+    if (0 == (*o_property).m_received_date_button)
+    {
+      break;
+    }
 
     (*o_property).m_received_date=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "receipt_received_date"));
 
+    if (0 == (*o_property).m_received_date)
+    {
+      break;
+    }
+
     (*o_property).m_amount=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "receipt_amount"));
+
+    if (0 == (*o_property).m_amount)
+    {
+      break;
+    }
 
     (*o_property).m_reference=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "receipt_reference"));
 
+    if (0 == (*o_property).m_reference)
+    {
+      break;
+    }
+
+    l_exit= 0;
+
   }while(0);
 
-  return;
+  return l_exit;
 }
 
 static void
@@ -78,6 +113,8 @@ copy(
   struct property const*const           i_property)
 {
   gchar const*                          l_text;
+
+  memset(io_object, 0, sizeof(*io_object));
 
   l_text= gtk_entry_get_text((*i_property).m_receipt_id);
   g_strlcpy((*io_object).m_receipt_id, l_text, sizeof((*io_object).m_receipt_id));
@@ -195,26 +232,26 @@ on_receipt_save_button_clicked(
   GtkButton*const                       io_button,
   gpointer                              io_user_data)
 {
-  struct receipt                        l_receipt;
   GtkDialog*                            l_dialog;
   GError*                               l_error;
+  int                                   l_exit;
   struct property*                      l_property;
+  struct receipt*                       l_receipt;
   struct session*                       l_session;
 
+  l_receipt= (struct receipt*)g_malloc0(sizeof(*l_receipt));
   l_error= 0;
   l_dialog= GTK_DIALOG(GTK_WIDGET(io_user_data));
   l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
 
-  memset(&l_receipt, 0, sizeof(l_receipt));
-  copy(&l_receipt, l_property);
-
-  receipt_trim(&l_receipt);
+  copy(l_receipt, l_property);
+  receipt_trim(l_receipt);
 
   do
   {
 
-    if (0 == l_receipt.m_sales_id[0])
+    if (0 == (*l_receipt).m_sales_id[0])
     {
       l_error= g_error_new(
         domain_receipt,
@@ -223,7 +260,7 @@ on_receipt_save_button_clicked(
       break;
     }
 
-    if (0 == l_receipt.m_received_date[0])
+    if (0 == (*l_receipt).m_received_date[0])
     {
       l_error= g_error_new(
         domain_receipt,
@@ -232,7 +269,7 @@ on_receipt_save_button_clicked(
       break;
     }
 
-    if (0 == l_receipt.m_amount[0])
+    if (0 == (*l_receipt).m_amount[0])
     {
       l_error= g_error_new(
         domain_receipt,
@@ -241,9 +278,22 @@ on_receipt_save_button_clicked(
       break;
     }
 
-    receipt_save(&l_error, l_session, &l_receipt);
+    if (0 == (*l_receipt).m_receipt_id[0])
+    {
+      l_exit= receipt_insert(&l_error, (*l_receipt).m_receipt_id, l_session, l_receipt);
+      if (0 == l_exit)
+      {
+        gtk_entry_set_text((*l_property).m_receipt_id, (*l_receipt).m_receipt_id);
+      }
+    }
+    else
+    {
+      l_exit= receipt_update(&l_error, l_session, l_receipt);
+    }
 
   }while(0);
+
+  g_free(l_receipt);
 
   if (l_error)
   {
@@ -279,11 +329,11 @@ on_receipt_index_button_clicked(
   GError*                               l_error;
   int                                   l_exit;
   struct property*                      l_property;
-  struct receipt                        l_receipt;
+  struct receipt*                       l_receipt;
   gchar                                 l_receipt_id[size_pg_big_int];
   struct session*                       l_session;
 
-  memset(&l_receipt, 0, sizeof(l_receipt));
+  l_receipt= (struct receipt*)g_malloc0(sizeof(*l_receipt));
   memset(l_receipt_id, 0, size_pg_big_int);
   l_error= 0;
 
@@ -302,16 +352,18 @@ on_receipt_index_button_clicked(
       break;
     }
 
-    l_exit= receipt_fetch(&l_error, &l_receipt, l_session, l_receipt_id);    
+    l_exit= receipt_fetch(&l_error, l_receipt, l_session, l_receipt_id);    
 
     if (l_exit)
     {
       break;
     }
 
-    set(l_property, &l_receipt);
+    set(l_property, l_receipt);
 
   }while(0);
+
+  g_free(l_receipt);
 
   if (l_error)
   {
@@ -331,14 +383,15 @@ receipt_form(
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
-  struct property                       l_property;
+  struct property*                      l_property;
 
   l_dialog= 0;
   l_error= 0;
   l_exit= -1;
+  l_property= (struct property*)g_malloc0(sizeof(*l_property));
 
   do
- {
+  {
 
     l_dialog= GTK_DIALOG(gtk_builder_get_object(io_builder, "dialog_receipt"));
 
@@ -354,8 +407,19 @@ receipt_form(
 
     gtk_window_set_transient_for(GTK_WINDOW(l_dialog), io_parent);
 
-    bind(&l_property, io_builder);
-    set_defaults(&l_property);
+    l_exit= bind(l_property, io_builder);
+
+    if (l_exit)
+    {
+      l_error= g_error_new(
+        domain_general,
+        error_generic,
+        "Unable to load dialog: '%s'",
+        "dialog_receipt");
+      break;
+    }
+
+    set_defaults(l_property);
 
     g_object_set_data(G_OBJECT(l_dialog), "builder", io_builder);
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
@@ -368,6 +432,8 @@ receipt_form(
     l_exit= 0;
 
   }while(0);
+
+  g_free(l_property);
 
   if (l_dialog)
   {

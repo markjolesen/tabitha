@@ -121,7 +121,7 @@ sales_insert(
     " notes_internal)"
     " VALUES"
     " ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)"
-    " RETURNING sales_id",
+    " RETURNING sales_id;",
     11,
     0,
     l_values,

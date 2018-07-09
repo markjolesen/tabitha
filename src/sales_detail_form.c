@@ -21,13 +21,15 @@ struct property
   gchar                                 m_current_id[size_product_id];
 };
 
-static void
+static int
 bind(
   struct property*const                 o_property,
   GtkBuilder*const                      io_builder)
 {
+  int                                   l_exit;
 
   memset(o_property, 0, sizeof(*o_property));
+  l_exit= -1;
 
   do
   {
@@ -35,18 +37,40 @@ bind(
     (*o_property).m_product_id=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_detail_product_id"));
 
+    if (0 == (*o_property).m_product_id)
+    {
+      break;
+    }
+
     (*o_property).m_description=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_detail_description"));
+
+    if (0 == (*o_property).m_description)
+    {
+      break;
+    }
 
     (*o_property).m_quantity=
       GTK_SPIN_BUTTON(gtk_builder_get_object(io_builder, "sales_detail_quantity"));
 
+    if (0 == (*o_property).m_quantity)
+    {
+      break;
+    }
+
     (*o_property).m_unit_price=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "sales_detail_unit_price"));
 
+    if (0 == (*o_property).m_unit_price)
+    {
+      break;
+    }
+
+    l_exit= 0;
+
   }while(0);
 
-  return;
+  return l_exit;
 }
 
 static void
@@ -86,6 +110,8 @@ copy(
 {
   gchar const*                          l_text;
 
+  memset(io_object, 0, sizeof(*io_object));
+
   l_text= gtk_entry_get_text((*i_property).m_product_id);
   g_strlcpy((*io_object).m_product_id, l_text, sizeof((*io_object).m_product_id));
 
@@ -107,18 +133,18 @@ on_sales_detail_product_id_focus_out_event(
   GdkEvent*                             io_event,
   gpointer                              io_user_data)
 {
-  struct product                        l_product;
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exists;
   int                                   l_exit;
+  struct product*                       l_product;
   struct property*                      l_property;
   int                                   l_rc;
   struct session*                       l_session;
   gchar const*                          l_text;
   gboolean                              l_visible;
 
-  memset(&l_product, 0, sizeof(l_product));
+  l_product= (struct product*)g_malloc0(sizeof(*l_product));
   l_error= 0;
   l_dialog= GTK_DIALOG(GTK_WIDGET(io_user_data));
 
@@ -136,32 +162,34 @@ on_sales_detail_product_id_focus_out_event(
     l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
 
     l_text= gtk_entry_get_text((*l_property).m_product_id);
-    g_strlcpy(l_product.m_product_id, l_text, sizeof(l_product.m_product_id));
+    g_strlcpy((*l_product).m_product_id, l_text, sizeof((*l_product).m_product_id));
 
-    l_rc= g_strcmp0(l_product.m_product_id, (*l_property).m_current_id);
+    l_rc= g_strcmp0((*l_product).m_product_id, (*l_property).m_current_id);
 
     if (0 == l_rc)
     {
       break;
     }
 
-    l_exit= product_exists(&l_error, &l_exists, l_session, l_product.m_product_id);
+    l_exit= product_exists(&l_error, &l_exists, l_session, (*l_product).m_product_id);
 
     if (l_exit || FALSE == l_exists)
     {
       break;
     }
 
-    l_exit= product_fetch(&l_error, &l_product, l_session, l_product.m_product_id);
+    l_exit= product_fetch(&l_error, l_product, l_session, (*l_product).m_product_id);
 
     if (l_exit)
     {
       break;
     }
 
-    set_product(l_property, &l_product);
+    set_product(l_property, l_product);
 
   }while(0);
+
+  g_free(l_product);
 
   if (l_error)
   {
@@ -181,13 +209,13 @@ on_sales_detail_product_id_index_button_clicked(
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
-  struct product                        l_product;
+  struct product*                       l_product;
   struct property*                      l_property;
   struct session*                       l_session;
 
-  memset(&l_product, 0, sizeof(l_product));
-
+  l_product= (struct product*)g_malloc0(sizeof(*l_product));
   l_error= 0;
+
   l_dialog= GTK_DIALOG(io_user_data);
   l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
@@ -196,23 +224,25 @@ on_sales_detail_product_id_index_button_clicked(
   do 
   {
 
-    l_exit= product_index_form(l_product.m_product_id, l_session, GTK_WINDOW(l_dialog), l_builder);
+    l_exit= product_index_form((*l_product).m_product_id, l_session, GTK_WINDOW(l_dialog), l_builder);
 
     if (l_exit)
     {
       break;
     }
 
-    l_exit= product_fetch(&l_error, &l_product, l_session, l_product.m_product_id);
+    l_exit= product_fetch(&l_error, l_product, l_session, (*l_product).m_product_id);
 
     if (l_exit)
     {
       break;
     }
 
-    set_product(l_property, &l_product);
+    set_product(l_property, l_product);
 
   }while(0);
+
+  g_free(l_product);
 
   if (l_error)
   {
@@ -234,14 +264,15 @@ sales_detail_form(
   GError*                               l_error;
   int                                   l_exit;
   gboolean                              l_exists;
-  struct property                       l_property;
+  struct property*                      l_property;
 
   l_dialog= 0;
   l_error= 0;
   l_exit= -1;
+  l_property= (struct property*)g_malloc0(sizeof(*l_property));
 
   do
- {
+  {
 
     l_dialog= GTK_DIALOG(gtk_builder_get_object(io_builder, "dialog_sales_detail"));
 
@@ -257,8 +288,19 @@ sales_detail_form(
 
     gtk_window_set_transient_for(GTK_WINDOW(l_dialog), io_parent);
 
-    bind(&l_property, io_builder);
-    set(&l_property, io_object);
+    l_exit= bind(l_property, io_builder);
+
+    if (l_exit)
+    {
+      l_error= g_error_new(
+        domain_general,
+        error_generic,
+        "Unable to load dialog: '%s'",
+        "dialog_sales_detail");
+      break;
+    }
+
+    set(l_property, io_object);
 
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
     g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
@@ -277,7 +319,7 @@ sales_detail_form(
         break;
       }
 
-      copy(io_object, &l_property);
+      copy(io_object, l_property);
 
       if (0 == (*io_object).m_product_id[0])
       {
@@ -304,6 +346,8 @@ sales_detail_form(
     }while(1);
   
   }while(0);
+
+  g_free(l_property);
 
   if (l_dialog)
   {

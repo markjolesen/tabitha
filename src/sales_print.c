@@ -8,9 +8,10 @@
   United States.
 */
 #include "sales.h"
+#include "calendar.h"
 #include "company.h"
 #include "contact.h"
-#include "calendar.h"
+#include "receipt.h"
 #define DECNUMDIGITS 19
 #include "decNumber.h"
 #include "error.h"
@@ -315,8 +316,10 @@ print_detail(
   gint                                  l_return_y;
   gint                                  l_row;
   gint                                  l_text_width;
+  decNumber                             l_two;
   decNumber                             l_unit_price;
 
+  decNumberFromString(&l_two, "-2", &(*io_data).m_set);
   l_detail= g_malloc0(sizeof(*l_detail));
 
   l_boxh= (4+i_advance);
@@ -424,10 +427,6 @@ print_detail(
       pango_cairo_show_layout (io_cr, io_layout);  
       decNumberFromString(&l_qty, (*l_detail).m_quantity, &(*io_data).m_set); 
     }
-    else
-    {
-      decNumberFromString(&l_qty, "1", &(*io_data).m_set); 
-    }
 
     if ((*l_detail).m_unit_price[0])
     {
@@ -440,6 +439,7 @@ print_detail(
       decNumberFromString(&l_unit_price, (*l_detail).m_unit_price, &(*io_data).m_set); 
       decNumberMultiply(&l_line_total, &l_unit_price, &l_qty, &(*io_data).m_set); 
       decNumberAdd(&(*io_data).m_subtotal, &(*io_data).m_subtotal, &l_line_total, &(*io_data).m_set);
+      decNumberRescale(&l_line_total, &l_line_total, &l_two, &(*io_data).m_set);
       decNumberToString(&l_line_total, l_buffer);
 
       pango_layout_set_text(io_layout, l_buffer, -1);
@@ -468,14 +468,18 @@ print_totals(
 {
   gint                                  l_boxh;
   gint                                  l_boxw;
-  gchar                                 l_buffer[512];
+  gchar                                 l_buffer1[512];
+  gchar                                 l_buffer2[512];
   decNumber                             l_discount;
   decNumber                             l_due;
   gint                                  l_pos_y;
   gint                                  l_pos_y2;
   gint                                  l_text_width;
+  decNumber                             l_temp;
   decNumber                             l_total;
+  decNumber                             l_two;
 
+  decNumberFromString(&l_two, "-2", &(*io_data).m_set);
   l_pos_y= i_pos_y;
   l_boxh= (4 + i_advance);
   l_boxw= (i_page_width - 485);
@@ -492,8 +496,9 @@ print_totals(
   cairo_move_to(io_cr, (480 - l_text_width), l_pos_y2);
   pango_cairo_show_layout (io_cr, io_layout);  
 
-  decNumberToString(&(*io_data).m_subtotal, l_buffer);
-  pango_layout_set_text(io_layout, l_buffer, -1);
+  decNumberRescale(&(*io_data).m_subtotal, &(*io_data).m_subtotal, &l_two, &(*io_data).m_set);
+  decNumberToString(&(*io_data).m_subtotal, l_buffer1);
+  pango_layout_set_text(io_layout, l_buffer1, -1);
   pango_layout_get_size(io_layout, &l_text_width, 0);
   l_text_width/= PANGO_SCALE;
   cairo_move_to(io_cr, (i_page_width - l_text_width - 2), l_pos_y2);
@@ -510,9 +515,19 @@ print_totals(
   cairo_move_to(io_cr, (480 - l_text_width), l_pos_y2);
   pango_cairo_show_layout (io_cr, io_layout);  
 
-  decNumberFromString(&l_discount, (*io_data).m_sales.m_discount, &(*io_data).m_set);
-  decNumberToString(&l_discount, l_buffer);
-  pango_layout_set_text(io_layout, l_buffer, -1);
+  if ((*io_data).m_sales.m_discount[0])
+  {
+    decNumberFromString(&l_discount, (*io_data).m_sales.m_discount, &(*io_data).m_set);
+  }
+  else
+  {
+    decNumberFromInt32(&l_discount, 0);
+  }
+
+  decNumberRescale(&l_discount, &l_discount, &l_two, &(*io_data).m_set);
+  decNumberToString(&l_discount, l_buffer1);
+  g_snprintf(l_buffer2, 512, "(%s)", l_buffer1);
+  pango_layout_set_text(io_layout, l_buffer2, -1);
   pango_layout_get_size(io_layout, &l_text_width, 0);
   l_text_width/= PANGO_SCALE;
   cairo_move_to(io_cr, (i_page_width - l_text_width - 2), l_pos_y2);
@@ -532,9 +547,20 @@ print_totals(
   cairo_move_to(io_cr, (480 - l_text_width), l_pos_y2);
   pango_cairo_show_layout (io_cr, io_layout);  
 
-  decNumberAdd(&l_total, &(*io_data).m_subtotal, &l_discount, &(*io_data).m_set);
-  decNumberToString(&l_total, l_buffer);
-  pango_layout_set_text(io_layout, l_buffer, -1);
+  decNumberSubtract(&l_total, &(*io_data).m_subtotal, &l_discount, &(*io_data).m_set);
+  decNumberRescale(&l_total, &l_total, &l_two, &(*io_data).m_set);
+  if (0 == decNumberIsNegative(&l_total))
+  {
+    decNumberToString(&l_total, l_buffer1);
+    pango_layout_set_text(io_layout, l_buffer1, -1);
+  }
+  else
+  {
+    decNumberCopyNegate(&l_temp, &l_total);
+    decNumberToString(&l_temp, l_buffer1);
+    g_snprintf(l_buffer2, 512, "(%s)", l_buffer1);
+    pango_layout_set_text(io_layout, l_buffer2, -1);
+  }
   pango_layout_get_size(io_layout, &l_text_width, 0);
   l_text_width/= PANGO_SCALE;
   cairo_move_to(io_cr, (i_page_width - l_text_width - 2), l_pos_y2);
@@ -553,8 +579,10 @@ print_totals(
     cairo_move_to(io_cr, (480 - l_text_width), l_pos_y2);
     pango_cairo_show_layout (io_cr, io_layout);  
 
-    decNumberToString(&(*io_data).m_paid, l_buffer);
-    pango_layout_set_text(io_layout, l_buffer, -1);
+    decNumberRescale(&(*io_data).m_paid, &(*io_data).m_paid, &l_two, &(*io_data).m_set);
+    decNumberToString(&(*io_data).m_paid, l_buffer1);
+    g_snprintf(l_buffer2, 512, "(%s)", l_buffer1);
+    pango_layout_set_text(io_layout, l_buffer2, -1);
     pango_layout_get_size(io_layout, &l_text_width, 0);
     l_text_width/= PANGO_SCALE;
     cairo_move_to(io_cr, (i_page_width - l_text_width - 2), l_pos_y2);
@@ -572,8 +600,19 @@ print_totals(
     pango_cairo_show_layout (io_cr, io_layout);  
 
     decNumberSubtract(&l_due, &l_total, &(*io_data).m_paid, &(*io_data).m_set);
-    decNumberToString(&l_due, l_buffer);
-    pango_layout_set_text(io_layout, l_buffer, -1);
+    decNumberRescale(&l_due, &l_due, &l_two, &(*io_data).m_set);
+    if (0 == decNumberIsNegative(&l_due))
+    {
+      decNumberToString(&l_due, l_buffer1);
+      pango_layout_set_text(io_layout, l_buffer1, -1);
+    }
+    else
+    {
+      decNumberCopyNegate(&l_temp, &l_due);
+      decNumberToString(&l_temp, l_buffer1);
+      g_snprintf(l_buffer2, 512, "(%s)", l_buffer1);
+      pango_layout_set_text(io_layout, l_buffer2, -1);
+    }
     pango_layout_get_size(io_layout, &l_text_width, 0);
     l_text_width/= PANGO_SCALE;
     cairo_move_to(io_cr, (i_page_width - l_text_width - 2), l_pos_y2);
@@ -1040,6 +1079,7 @@ print_begin (
   GtkPrintContext*const                 io_context,
   gpointer                              io_user_data)
 {
+  gchar                                 l_buffer[512];
   struct print_data*                    l_data;
   GError*                               l_error;
   int                                   l_exit;
@@ -1079,6 +1119,22 @@ print_begin (
     if (l_exit)
     {
       break;
+    }
+
+    l_exit= receipt_tally(
+      &l_error,
+      &l_buffer[0],
+      (*l_data).m_session,
+      (*l_data).m_sales_id);
+
+    if (l_exit)
+    {
+      break;
+    }
+
+    if (l_buffer[0])
+    {
+      decNumberFromString(&(*l_data).m_paid, l_buffer, &(*l_data).m_set);
     }
 
     if ((*l_data).m_sales.m_billing_id[0])

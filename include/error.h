@@ -50,6 +50,7 @@ enum error_code
   error_receipt_unable_to_fetch_row,
   error_receipt_unable_to_insert,
   error_receipt_unable_to_populate,
+  error_receipt_unable_to_sum_amount,
   error_receipt_unable_to_update,
   error_sales_detail_form_product_does_not_exist,
   error_sales_detail_unable_to_delete_row,

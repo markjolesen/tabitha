@@ -26,9 +26,10 @@ receipt_trim(
   return;
 }
 
-static int
+extern int
 receipt_insert(
   GError**                              o_error,
+	gchar                                 o_receipt_id[size_pg_big_int],
   struct session*const                  io_session,
   struct receipt const*const            i_receipt)
 {
@@ -36,7 +37,10 @@ receipt_insert(
   int                                   l_exit;
   PGresult*                             l_result;
   ExecStatusType                        l_status;
+  gchar const*                          l_text;
   gchar const*                          l_values[4];
+
+  memset(o_receipt_id, 0, size_pg_big_int);
 
   l_error= 0;
   l_exit= 0;
@@ -55,7 +59,8 @@ receipt_insert(
     " amount,"
     " reference)"
     " VALUES"
-    " ($1,$2,$3,$4);",
+    " ($1,$2,$3,$4)"
+    " RETURNING receipt_id;",
     4,
     0,
     l_values,
@@ -63,17 +68,26 @@ receipt_insert(
     0,
     0);
 
-  l_status= PQresultStatus(l_result);
-
-  if (PGRES_COMMAND_OK != l_status)
+  do
   {
-    l_error= g_error_new(
-      domain_receipt,
-      error_receipt_unable_to_insert,
-      "Unable to insert into receipt table: '%s'",
-      PQerrorMessage((*io_session).m_connection));
-    l_exit= -1;
-  }
+
+    l_status= PQresultStatus(l_result);
+
+    if (PGRES_COMMAND_OK != l_status)
+    {
+      l_error= g_error_new(
+        domain_receipt,
+        error_receipt_unable_to_insert,
+        "Unable to insert into receipt table: '%s'",
+        PQerrorMessage((*io_session).m_connection));
+      l_exit= -1;
+      break;
+    }
+
+    l_text= PQgetvalue(l_result, 0, 0);
+    g_strlcpy(o_receipt_id, l_text, size_pg_big_int);
+
+  }while(0);
 
   PQclear(l_result);
 
@@ -85,7 +99,7 @@ receipt_insert(
   return l_exit;
 }
 
-static int
+extern int
 receipt_update(
   GError**                              o_error,
   struct session*const                  io_session,
@@ -242,41 +256,6 @@ receipt_exists(
 }
 
 extern int
-receipt_save(
-  GError**                              o_error,
-  struct session*const                  io_session,
-  struct receipt const*const            i_receipt)
-{
-  GError*                               l_error;
-  int                                   l_exit;
-  gboolean                              l_exists;
-
-  l_error= 0;
-  l_exit= 0;
-
-  l_exit= receipt_exists(&l_error, &l_exists, io_session, (*i_receipt).m_receipt_id);
-  
-  if (0 == l_exit)
-  {
-    if (l_exists)
-    {
-      l_exit= receipt_update(&l_error, io_session, i_receipt);
-    }
-    else
-    {
-      l_exit= receipt_insert(&l_error, io_session, i_receipt);
-    }
-  }
-
-  if (l_error)
-  {
-    g_propagate_error(o_error, l_error);
-  }
-
-  return l_exit;
-}
-
-extern int
 receipt_fetch(
   GError**                              o_error,
   struct receipt*const                  o_receipt,
@@ -314,8 +293,8 @@ receipt_fetch(
       "SELECT"
       " receipt_id,"
       " sales_id,"
-      " received_date"
-      " amount"
+      " received_date,"
+      " amount,"
       " reference"
       " FROM receipt"
       " WHERE receipt_id = %s"
@@ -365,6 +344,85 @@ receipt_fetch(
 
     l_text= PQgetvalue(l_result, 0, 4);
     g_strlcpy((*o_receipt).m_reference, l_text, sizeof((*o_receipt).m_reference));
+
+  }while(0);
+
+  PQclear(l_result);
+
+  if (l_error)
+  {
+    g_propagate_error(o_error, l_error);
+  }
+
+  return l_exit;
+}
+
+extern int
+receipt_tally(
+  GError**                              o_error,
+  gchar                                 o_amount[size_money],
+  struct session*const                  io_session,
+	gchar const                           i_sales_id[size_pg_big_int])
+{
+  GError*                               l_error;
+  char*                                 l_escaped;
+  int                                   l_exit;
+  PGresult*                             l_result;
+  gchar*                                l_statement;
+  ExecStatusType                        l_status;
+  gchar*                                l_text;
+
+  memset(o_amount, 0, size_money);
+
+  l_error= 0;
+  l_escaped= 0;
+  l_exit= 0;
+  l_result= 0;
+
+  do
+  {
+
+    if (0 == i_sales_id[0])
+    {
+      break;
+    }
+
+    l_escaped= PQescapeLiteral((*io_session).m_connection, i_sales_id, strlen(i_sales_id));
+
+    l_statement= g_malloc0(1024);
+
+    g_snprintf(
+      l_statement,
+      1024,
+      "SELECT"
+      " SUM(amount)" 
+      " FROM receipt"
+      " WHERE sales_id = %s;",
+      l_escaped);
+
+    PQfreemem(l_escaped);
+    l_escaped= 0;
+
+    l_result= PQexec((*io_session).m_connection, l_statement);
+
+    g_free(l_statement);
+    l_statement= 0;
+
+    l_status= PQresultStatus(l_result);
+
+    if (PGRES_TUPLES_OK != l_status)
+    {
+      l_error= g_error_new(
+        domain_receipt,
+        error_receipt_unable_to_sum_amount,
+        "Unable to sum amount: '%s'",
+        PQerrorMessage((*io_session).m_connection));
+      l_exit= -1;
+      break;
+    }
+
+    l_text= PQgetvalue(l_result, 0, 0);
+    g_strlcpy(o_amount, l_text, size_money);
 
   }while(0);
 

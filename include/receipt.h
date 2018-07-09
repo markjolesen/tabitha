@@ -48,14 +48,28 @@ receipt_form(
   GtkBuilder*const                      io_builder);
 
 extern int
-receipt_save(
+receipt_insert(
   GError**                              o_error,
+	gchar                                 o_receipt_id[size_pg_big_int],
   struct session*const                  io_session,
   struct receipt const*const            i_receipt);
 
 extern void
 receipt_trim(
   struct receipt*const                  io_receipt);
+
+extern int
+receipt_tally(
+  GError**                              o_error,
+  gchar                                 o_amount[size_money],
+  struct session*const                  io_session,
+	gchar const                           i_sales_id[size_pg_big_int]);
+
+extern int
+receipt_update(
+  GError**                              o_error,
+  struct session*const                  io_session,
+  struct receipt const*const            i_receipt);
 
 #define __receipt_h__
 #endif

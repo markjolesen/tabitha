@@ -30,13 +30,15 @@ struct property
   GtkSpinButton*                        m_smtp_port;
 };
 
-static void
+static int
 bind(
   struct property*const                 o_property,
   GtkBuilder*const                      io_builder)
 {
+  int                                   l_exit;
 
   memset(o_property, 0, sizeof(*o_property));
+  l_exit= -1;
 
   do
   {
@@ -44,54 +46,136 @@ bind(
     (*o_property).m_company_name=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_company_name"));
 
+    if (0 == (*o_property).m_company_name)
+    {
+      break;
+    }
+
     (*o_property).m_street1=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_street1"));
+
+    if (0 == (*o_property).m_street1)
+    {
+      break;
+    }
 
     (*o_property).m_street2=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_street2"));
 
+    if (0 == (*o_property).m_street2)
+    {
+      break;
+    }
+
     (*o_property).m_street3=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_street3"));
+
+    if (0 == (*o_property).m_street3)
+    {
+      break;
+    }
 
     (*o_property).m_city=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_city"));
 
+    if (0 == (*o_property).m_city)
+    {
+      break;
+    }
+
     (*o_property).m_state=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_state"));
+
+    if (0 == (*o_property).m_state)
+    {
+      break;
+    }
 
     (*o_property).m_zipcode=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_zipcode"));
 
+    if (0 == (*o_property).m_zipcode)
+    {
+      break;
+    }
+
     (*o_property).m_phone=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_phone"));
+
+    if (0 == (*o_property).m_phone)
+    {
+      break;
+    }
 
     (*o_property).m_cellphone=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_cellphone"));
 
+    if (0 == (*o_property).m_cellphone)
+    {
+      break;
+    }
+
     (*o_property).m_fax=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_fax"));
+
+    if (0 == (*o_property).m_fax)
+    {
+      break;
+    }
 
     (*o_property).m_email=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_email"));
 
+    if (0 == (*o_property).m_email)
+    {
+      break;
+    }
+
     (*o_property).m_website=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "company_website"));
+
+    if (0 == (*o_property).m_website)
+    {
+      break;
+    }
 
     (*o_property).m_smtp_server=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "smtp_server"));
 
+    if (0 == (*o_property).m_smtp_server)
+    {
+      break;
+    }
+
     (*o_property).m_smtp_username=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "smtp_email"));
+
+    if (0 == (*o_property).m_smtp_username)
+    {
+      break;
+    }
 
     (*o_property).m_smtp_password=
       GTK_ENTRY(gtk_builder_get_object(io_builder, "smtp_password"));
 
+    if (0 == (*o_property).m_smtp_password)
+    {
+      break;
+    }
+
     (*o_property).m_smtp_port=
       GTK_SPIN_BUTTON(gtk_builder_get_object(io_builder, "smtp_port"));
 
+    if (0 == (*o_property).m_smtp_port)
+    {
+      break;
+    }
+
+    l_exit= 0;
+
   }while(0);
 
-  return;
+  return l_exit;
 }
 
 static void
@@ -126,19 +210,21 @@ fetch_and_set(
   struct session*const                  io_session,
   GtkWindow*const                       io_parent)
 {
+  struct company*                       l_company;
   GError*                               l_error;
   int                                   l_exit;
-  struct company                        l_company;
 
-  memset(&l_company, 0, sizeof(l_company));
+  l_company= (struct company*)g_malloc0(sizeof(*l_company));
   l_error= 0;
 
-  l_exit= company_fetch(&l_error, &l_company, io_session);
+  l_exit= company_fetch(&l_error, l_company, io_session);
 
   if (0 == l_exit)
   {
-    set(io_property, &l_company);
+    set(io_property, l_company);
   }
+
+  g_free(l_company);
 
   if (l_error)
   {
@@ -155,6 +241,8 @@ copy(
   struct property const*const            i_property)
 {
   gchar const*                          l_text;
+
+  memset(io_object, 0, sizeof(*io_object));
 
   l_text= gtk_entry_get_text((*i_property).m_company_name);
   g_strlcpy((*io_object).m_company_name, l_text, sizeof((*io_object).m_company_name));
@@ -214,21 +302,21 @@ on_company_save_button_clicked(
   GtkButton*                            io_button,
   gpointer                              io_user_data)
 {
-  struct company                        l_company;
+  struct company*                       l_company;
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   struct property*                      l_property;
   struct session*                       l_session;
 
+  l_company= (struct company*)g_malloc0(sizeof(*l_company));
   l_error= 0;
   l_dialog= GTK_DIALOG(GTK_WIDGET(io_user_data));
   l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
 
-  memset(&l_company, 0, sizeof(l_company));
-  copy(&l_company, l_property);
-
-  company_update(&l_error, l_session, &l_company);
+  copy(l_company, l_property);
+  company_update(&l_error, l_session, l_company);
+  g_free(l_company);
 
   if (l_error)
   {
@@ -248,11 +336,12 @@ company_form(
   GtkDialog*                            l_dialog;
   GError*                               l_error;
   int                                   l_exit;
-  struct property                       l_property;
+  struct property*                      l_property;
 
   l_dialog= 0;
   l_error= 0;
   l_exit= -1;
+  l_property= (struct property*)g_malloc0(sizeof(*l_property));
 
   do
   {
@@ -271,8 +360,19 @@ company_form(
 
     gtk_window_set_transient_for(GTK_WINDOW(l_dialog), io_parent);
 
-    bind(&l_property, io_builder);
-    fetch_and_set(&l_property, io_session, GTK_WINDOW(l_dialog));
+    l_exit= bind(l_property, io_builder);
+
+    if (l_exit)
+    {
+      l_error= g_error_new(
+        domain_general,
+        error_generic,
+        "Unable to load dialog: '%s'",
+        "dialog_company");
+      break;
+    }
+
+    fetch_and_set(l_property, io_session, GTK_WINDOW(l_dialog));
 
     g_object_set_data(G_OBJECT(l_dialog), "builder", io_builder);
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
@@ -285,6 +385,8 @@ company_form(
     l_exit= 0;
 
   }while(0);
+
+  g_free(l_property);
 
   if (l_dialog)
   {
