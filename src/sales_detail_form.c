@@ -303,7 +303,7 @@ sales_detail_form(
     set(l_property, io_object);
 
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
-    g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
+    g_object_set_data(G_OBJECT(l_dialog), "property", l_property);
     g_object_set_data(G_OBJECT(l_dialog), "builder", io_builder);
 
     gtk_widget_show_all(GTK_WIDGET(l_dialog));

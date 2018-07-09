@@ -131,7 +131,7 @@ internal_form(
     set(l_property, (*io_text));
 
     g_object_set_data(G_OBJECT(l_dialog), "builder", io_builder);
-    g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
+    g_object_set_data(G_OBJECT(l_dialog), "property", l_property);
 
     gtk_widget_show_all(GTK_WIDGET(l_dialog));
     gtk_window_set_modal(GTK_WINDOW(l_dialog), 1);

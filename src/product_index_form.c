@@ -21,7 +21,6 @@ struct property
   GtkSearchEntry*                       m_search;
   GtkRadioButton*                       m_search_product_id;
   GtkRadioButton*                       m_search_description;
-  GtkComboBoxText*                      m_filter;
   GtkTreeView*                          m_treeview;
   GtkListStore*                         m_liststore;
   GtkButton*                            m_nav_first;
@@ -68,14 +67,6 @@ bind(
       GTK_RADIO_BUTTON(gtk_builder_get_object(io_builder, "product_index_search_description"));
 
     if (0 == (*o_property).m_search_description)
-    {
-      break;
-    }
-
-    (*o_property).m_filter=
-      GTK_COMBO_BOX_TEXT(gtk_builder_get_object(io_builder, "product_index_filter"));
-
-    if (0 == (*o_property).m_filter)
     {
       break;
     }
@@ -677,7 +668,7 @@ product_index_form(
     }
 
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
-    g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
+    g_object_set_data(G_OBJECT(l_dialog), "property", l_property);
 
     gtk_widget_show_all(GTK_WIDGET(l_dialog));
     gtk_window_set_modal(GTK_WINDOW(l_dialog), 1);

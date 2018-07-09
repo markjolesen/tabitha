@@ -15,7 +15,7 @@
 
 enum error_domain
 {
-  domain_general                        = 0,
+  domain_general                        = 1,
   domain_company,
   domain_contact,
   domain_glade,

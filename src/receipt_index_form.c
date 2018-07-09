@@ -645,7 +645,6 @@ on_receipt_index_col_changed(
   GtkTreeViewColumn*                    io_treeviewcolumn,
   gpointer                              io_user_data)
 {
-/*
   GtkDialog*                            l_dialog;
   struct property*                      l_property;
   gint                                  l_column_id;
@@ -656,14 +655,20 @@ on_receipt_index_col_changed(
 
   switch(l_column_id)
   {
+    case 3:
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON((*l_property).m_search_reference), TRUE);
+      break;
+    case 2:
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON((*l_property).m_search_received_date), TRUE);
+      break;
     case 1:
-      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON((*l_property).m_search_description), TRUE);
+      gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON((*l_property).m_search_sales_id), TRUE);
       break;
     default:
       gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON((*l_property).m_search_receipt_id), TRUE);
       break;
   };
-*/
+
   return;
 }
 
@@ -716,7 +721,7 @@ receipt_index_form(
     }
 
     g_object_set_data(G_OBJECT(l_dialog), "session", io_session);
-    g_object_set_data(G_OBJECT(l_dialog), "property", &l_property);
+    g_object_set_data(G_OBJECT(l_dialog), "property", l_property);
 
     gtk_widget_show_all(GTK_WIDGET(l_dialog));
     gtk_window_set_modal(GTK_WINDOW(l_dialog), 1);
