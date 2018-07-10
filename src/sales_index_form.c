@@ -662,7 +662,7 @@ on_sales_index_filter_changed(
   return;
 }
 
-void
+G_MODULE_EXPORT void
 on_sales_index_col_changed(
   GtkTreeViewColumn*                    io_treeviewcolumn,
   gpointer                              io_user_data)

@@ -73,6 +73,5 @@ target_link_libraries(tabitha
 	${GTK3_LIBRARIES}
 	${GLIB2_LIBRARIES}
 	${GMODULE_LIBRARIES}
-	${PSQL_LIBRARIES}
-	-lbsd)
+	${PSQL_LIBRARIES})
 

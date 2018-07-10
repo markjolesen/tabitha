@@ -1,0 +1,126 @@
+# makefile.mingw64
+#
+# License CC0 PUBLIC DOMAIN
+#
+# To the extent possible under law, Mark J. Olesen has waived all copyright
+# and related or neighboring rights to tabitha. This work is published from:
+# United States.
+
+UNAME:= $(shell uname)
+
+ifneq ($(UNAME), MINGW64_NT-10.0)
+$(error build script is for MinGw64 environment)
+endif
+
+SRC=../src/
+INC=../include/
+OBJ=../obj/
+BIN=../bin/
+BIN_SUFFIX=.exe
+
+TABITHA_INCLUDES=-I ${INC}
+
+GTK3_INCLUDES=`pkg-config gtk+-3.0 --cflags`
+GTK3_LIBRARIES=`pkg-config gtk+-3.0 --libs`
+
+GLIB2_INCLUDES=`pkg-config glib-2.0 --cflags`
+GLIB2_LIBRARIES=`pkg-config glib-2.0 --libs`
+
+GMODULE_INCLUDES=`pkg-config gmodule-export-2.0 --cflags`
+GMODULE_LIBRARIEs=`pkg-config gmodule-export-2.0 --libs`
+
+PQ_INCLUDES=`pkg-config libpq --cflags`
+PQ_LIBRARIES=`pkg-config libpq --libs`
+
+DECNUMBER_SRC=${SRC}decNumber/
+DECNUMBER_INCLUDES=-I ${DECNUMBER_SRC}
+
+CFLAGS+=\
+	${TABITHA_INCLUDES}\
+	${GTK3_INCLUDES}\
+	${GLIB2_INCLUDES}\
+	${GMODULE_INCLUDES}\
+	${PQ_INCLUDES}\
+	${DECNUMBER_INCLUDES}\
+	-export-dyanmic\
+	-Wall\
+	-std=c99\
+	-pedantic\
+	-ggdb
+
+LDFLAGS+=\
+	-mwindows\
+	${GTK3_LIBRARIES}\
+	${GLIB2_LIBRARIES}\
+	${GMODULE_LIBRARIES}\
+	${PQ_LIBRARIES}
+
+DEPFLAGS=-MM
+
+TABITHA_OBJECTS=\
+	${OBJ}aspect.o\
+	${OBJ}aspect_form.o\
+	${OBJ}calendar.o\
+	${OBJ}calendar_form.o\
+	${OBJ}company.o\
+	${OBJ}company_form.o\
+	${OBJ}contact.o\
+	${OBJ}contact_form.o\
+	${OBJ}contact_index_form.o\
+	${OBJ}edit_form.o\
+	${OBJ}error.o\
+	${OBJ}format.o\
+	${OBJ}glade.o\
+	${OBJ}main.o\
+	${OBJ}menu.o\
+	${OBJ}product.o\
+	${OBJ}product_form.o\
+	${OBJ}product_index_form.o\
+	${OBJ}receipt.o\
+	${OBJ}receipt_form.o\
+	${OBJ}receipt_index_form.o\
+	${OBJ}sales.o\
+	${OBJ}sales_detail.o\
+	${OBJ}sales_detail_form.o\
+	${OBJ}sales_form.o\
+	${OBJ}sales_index_form.o\
+	${OBJ}sales_print.o\
+	${OBJ}session.o\
+	${OBJ}trim.o\
+	${OBJ}decContext.o\
+	${OBJ}decNumber.o
+
+VPATH=${SRC} ${DECNUMBER_SRC}
+
+.PHONY : all
+
+all : ${OBJ} ${BIN} ${BIN}tabitha${BIN_SUFFIX}
+
+${BIN}tabitha${BIN_SUFFIX} : ${TABITHA_OBJECTS}
+	${CC} -o $@ ${TABITHA_OBJECTS} ${LDFLAGS}
+
+${OBJ} : 
+	test -d $@ || mkdir $@
+
+${BIN} :
+	test -d $@ || mkdir $@
+
+${OBJ}%.o : %.c
+	${CC} -c ${CFLAGS} -o $@ $? 2> $@.err
+
+.PHONY : clean
+clean :
+	${RM} ${OBJ}*.o
+	${RM} ${OBJ}*.o.err
+	${RM} ${BIN}tabitha${BIN_SUFFIX}
+
+.PHONY : depend
+
+depend : depend.mk
+
+depend.mk :
+	${CC} ${CFLAGS} ${DEPFLAGS} ${SRC}*.c > depend.mk
+	sed -i -re "s/(.*)\.o/$$\(OBJ\)\/\1.o/" depend.mk
+
+-include depend.mk
+

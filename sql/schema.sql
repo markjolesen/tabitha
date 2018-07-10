@@ -14,7 +14,7 @@
 */
 
 CREATE DATABASE tabitha;
-CREATE ROLE tabitha LOGIN;
+CREATE ROLE tabitha LOGIN WITH PASSWORD 'tabitha';
 
 \c tabitha
 

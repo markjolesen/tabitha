@@ -640,7 +640,7 @@ on_receipt_index_search_receipt_type_toggled(
   return;
 }
 
-void
+G_MODULE_EXPORT void
 on_receipt_index_col_changed(
   GtkTreeViewColumn*                    io_treeviewcolumn,
   gpointer                              io_user_data)

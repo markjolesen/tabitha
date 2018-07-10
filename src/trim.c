@@ -8,7 +8,6 @@
   United States.
 */
 #include "trim.h"
-#include <bsd/inttypes.h>
 
 extern void
 trim_big_int(
@@ -164,7 +163,12 @@ trim_small_int(
   int                                   l_status;
   guint                                 l_value;
   
-  l_value= strtou(io_number, 0, 10, 0, G_MAXINT16, &l_status);
+  l_value= strtoul(io_number, 0, 10);
+
+  if (G_MAXINT16 < l_value)
+  {
+    l_value= G_MAXINT16;
+  }
 
   memset(io_number, 0, size_pg_small_int);
 
