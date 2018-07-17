@@ -299,8 +299,6 @@ query(
 {
   GError*                               l_error;
   char*                                 l_escaped;
-  gint                                  l_filter;
-  gsize                                 l_size;
   struct property*                      l_property;
   gchar const*                          l_search;
   struct session*                       l_session;
@@ -423,7 +421,7 @@ query(
 
 G_MODULE_EXPORT void
 on_receipt_index_spin_button_value_changed(
-  GtkSpinButton*                        io_spin_button,
+  G_GNUC_UNUSED GtkSpinButton*          io_spin_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -436,13 +434,13 @@ on_receipt_index_spin_button_value_changed(
 
 G_MODULE_EXPORT void
 on_receipt_index_last_button_clicked (
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data) 
 {
   GtkDialog*                            l_dialog;
   struct property*                      l_property;
   gsize                                 l_limit;
-  gint                                  l_offset;
+  gsize                                 l_offset;
 
   l_dialog= GTK_DIALOG(io_user_data);
 
@@ -475,7 +473,7 @@ on_receipt_index_last_button_clicked (
 
 G_MODULE_EXPORT void
 on_receipt_index_next_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data) 
 {
   GtkDialog*                            l_dialog;
@@ -492,7 +490,7 @@ on_receipt_index_next_button_clicked(
   if ((*l_property).m_tuples < l_offset)
   {
     l_offset= ((*l_property).m_tuples - l_limit);
-    if (0 > l_offset)
+    if (0 > (gssize)l_offset)
     {
       l_offset= 0;
     }
@@ -509,13 +507,13 @@ on_receipt_index_next_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_index_previous_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data) 
 {
   GtkDialog*                            l_dialog;
   struct property*                      l_property;
   gsize                                 l_limit;
-  gint                                  l_offset;
+  gsize                                 l_offset;
 
   l_dialog= GTK_DIALOG(io_user_data);
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
@@ -523,7 +521,7 @@ on_receipt_index_previous_button_clicked(
   l_limit= (gsize)gtk_spin_button_get_value_as_int((*l_property).m_limit);
   l_offset= ((*l_property).m_tuple_offset - l_limit);
 
-  if (0 > l_offset)
+  if (0 > (gssize)l_offset)
   {
     l_offset= 0;
   }
@@ -538,12 +536,12 @@ on_receipt_index_previous_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_index_first_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data) 
 {
   GtkDialog*                            l_dialog;
   struct property*                      l_property;
-  gint                                  l_offset;
+  gsize                                 l_offset;
 
   l_dialog= GTK_DIALOG(io_user_data);
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
@@ -561,9 +559,9 @@ on_receipt_index_first_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_index_treeview_row_activated(
-  GtkTreeView*                          io_tree_view,
-  GtkTreePath*                          io_path,
-  GtkTreeViewColumn*                    io_column,
+  G_GNUC_UNUSED GtkTreeView*            io_tree_view,
+  G_GNUC_UNUSED GtkTreePath*            io_path,
+  G_GNUC_UNUSED GtkTreeViewColumn*      io_column,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -576,7 +574,7 @@ on_receipt_index_treeview_row_activated(
 
 G_MODULE_EXPORT void
 on_receipt_index_search_changed(
-  GtkSearchEntry*                       io_entry,
+  G_GNUC_UNUSED GtkSearchEntry*         io_entry,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -589,7 +587,7 @@ on_receipt_index_search_changed(
 
 G_MODULE_EXPORT void
 on_receipt_index_search_receipt_type_toggled(
-  GtkToggleButton*                      io_togglebutton,
+  G_GNUC_UNUSED GtkToggleButton*        io_togglebutton,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;

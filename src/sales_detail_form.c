@@ -129,8 +129,8 @@ copy(
 
 G_MODULE_EXPORT gboolean
 on_sales_detail_product_id_focus_out_event(
-  GtkWidget*                            io_widget,
-  GdkEvent*                             io_event,
+  G_GNUC_UNUSED GtkWidget*              io_widget,
+  G_GNUC_UNUSED GdkEvent*               io_event,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -202,7 +202,7 @@ on_sales_detail_product_id_focus_out_event(
 
 G_MODULE_EXPORT void
 on_sales_detail_product_id_index_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;

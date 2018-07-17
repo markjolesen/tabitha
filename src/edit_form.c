@@ -75,14 +75,6 @@ copy(
   return;
 }
 
-G_MODULE_EXPORT void
-on_edit_paste_clicked(
-  GtkToolButton*const                   io_toolbutton,
-  gpointer                              io_user_data)
-{
-  return;
-}
-
 static int
 internal_form(
   gchar**                               io_text,

@@ -13,7 +13,6 @@ extern void
 trim_big_int(
   gchar                                 io_number[size_pg_big_int])
 {
-  int                                   l_status;
   guint64                               l_value;
   
   l_value= strtoul(io_number, 0, 10);
@@ -22,7 +21,7 @@ trim_big_int(
 
   if (l_value)
   {
-    g_snprintf(io_number, size_pg_big_int, "%u", l_value);
+    g_snprintf(io_number, size_pg_big_int, "%lu", l_value);
   }
 
   return;
@@ -160,7 +159,6 @@ extern void
 trim_small_int(
   gchar                                 io_number[size_pg_small_int])
 {
-  int                                   l_status;
   guint                                 l_value;
   
   l_value= strtoul(io_number, 0, 10);

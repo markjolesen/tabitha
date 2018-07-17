@@ -156,7 +156,7 @@ set_defaults(
 
 G_MODULE_EXPORT void
 on_receipt_received_date_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkAllocation                         l_alloc;
@@ -191,19 +191,17 @@ on_receipt_received_date_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_sales_index_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
   GtkDialog*                            l_dialog;
-  GError*                               l_error;
   int                                   l_exit;
   struct property*                      l_property;
   gchar                                 l_sales_id[size_pg_big_int];
   struct session*                       l_session;
 
   memset(l_sales_id, 0, sizeof(l_sales_id));
-  l_error= 0;
 
   l_dialog= GTK_DIALOG(GTK_WIDGET(io_user_data));
   l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
@@ -229,7 +227,7 @@ on_receipt_sales_index_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_save_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -306,7 +304,7 @@ on_receipt_save_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_new_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -321,7 +319,7 @@ on_receipt_new_button_clicked(
 
 G_MODULE_EXPORT void
 on_receipt_index_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;

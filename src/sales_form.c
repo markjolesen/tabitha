@@ -488,7 +488,7 @@ save(
 
 G_MODULE_EXPORT void
 on_sales_print_button_clicked(
-  GtkToolButton*const                   io_button,
+  G_GNUC_UNUSED GtkToolButton*const     io_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -525,7 +525,7 @@ on_sales_print_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_new_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -540,7 +540,7 @@ on_sales_new_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_index_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -640,7 +640,7 @@ on_sales_index_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_billing_id_index_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -669,7 +669,7 @@ on_sales_billing_id_index_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_service_contact_index_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -747,7 +747,7 @@ on_sales_service_contact_index_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_service_contact_edit_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -764,7 +764,7 @@ on_sales_service_contact_edit_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_notes_edit_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -781,7 +781,7 @@ on_sales_notes_edit_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_notes_internal_edit_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -798,7 +798,7 @@ on_sales_notes_internal_edit_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_sales_date_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkAllocation                         l_alloc;
@@ -833,7 +833,7 @@ on_sales_sales_date_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_due_date_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkAllocation                         l_alloc;
@@ -868,7 +868,7 @@ on_sales_due_date_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_start_date_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkAllocation                         l_alloc;
@@ -903,7 +903,7 @@ on_sales_start_date_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_completed_date_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkAllocation                         l_alloc;
@@ -938,7 +938,7 @@ on_sales_completed_date_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_detail_add_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -992,7 +992,7 @@ on_sales_detail_add_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_save_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -1005,7 +1005,7 @@ on_sales_save_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_detail_delete_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   gboolean                              l_bool;
@@ -1124,7 +1124,7 @@ on_sales_detail_delete_button_clicked(
 
 G_MODULE_EXPORT void
 on_sales_detail_edit_button_clicked(
-  GtkButton*const                       io_button,
+  G_GNUC_UNUSED GtkButton*const         io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -1215,7 +1215,7 @@ G_MODULE_EXPORT void
 on_sales_detail_treeview_row_activated(
   GtkTreeView*                          io_tree_view,
   GtkTreePath*                          io_path,
-  GtkTreeViewColumn*                    io_column,
+  G_GNUC_UNUSED GtkTreeViewColumn*      io_column,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;

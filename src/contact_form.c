@@ -297,7 +297,6 @@ set_defaults(
   GtkTextBuffer*                        l_buffer;
   GtkTextIter                           l_end;
   GtkTextIter                           l_start;
-  gchar*                                l_text;
 
   gtk_entry_set_text((*io_property).m_contact_id, "");
   gtk_combo_box_set_active(GTK_COMBO_BOX((*io_property).m_contact_type), 0);
@@ -321,11 +320,11 @@ set_defaults(
   gtk_text_buffer_delete(l_buffer, &l_start, &l_end);
 
   return;
-};
+}
 
 G_MODULE_EXPORT void
 on_contact_index_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data)
 {
   GtkBuilder*                           l_builder;
@@ -380,7 +379,7 @@ on_contact_index_button_clicked(
 
 G_MODULE_EXPORT void
 on_contact_new_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data)
 {
   GtkDialog*                            l_dialog;
@@ -395,7 +394,7 @@ on_contact_new_button_clicked(
 
 G_MODULE_EXPORT void
 on_contact_save_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data)
 {
   struct contact*                       l_contact;
@@ -441,8 +440,8 @@ on_contact_save_button_clicked(
 
 G_MODULE_EXPORT gboolean
 on_contact_contact_id_focus_out_event(
-  GtkWidget*                            io_widget,
-  GdkEvent*                             io_event,
+  G_GNUC_UNUSED GtkWidget*              io_widget,
+  G_GNUC_UNUSED GdkEvent*               io_event,
   gpointer                              io_user_data)
 {
   struct contact*                       l_contact;

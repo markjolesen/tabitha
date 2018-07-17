@@ -472,7 +472,7 @@ sales_detail_fetch_query(
   PGresult*                             l_result;
   gchar*                                l_statement;
   ExecStatusType                        l_status;
-  gint64                                l_tuples;
+  gsize                                 l_tuples;
 
   memset(o_cursor, 0, sizeof(*o_cursor));
 
@@ -525,7 +525,7 @@ sales_detail_fetch_query(
 
     l_tuples= PQntuples(l_result);
 
-    if (0 > l_tuples)
+    if (0 > (gssize)l_tuples)
     {
       l_exit= -1;
       break;

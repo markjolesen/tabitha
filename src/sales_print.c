@@ -298,7 +298,7 @@ print_detail(
   cairo_t*const                         io_cr,
   struct print_data*const               io_data,
   gint const                            i_page_width,
-  gint const                            i_page_height,
+  G_GNUC_UNUSED gint const              i_page_height,
   gint const                            i_pos_y,
   gint const                            i_advance,
   guint const                           i_detail_lines)
@@ -314,7 +314,7 @@ print_detail(
   gint                                  l_push_y;
   decNumber                             l_qty;
   gint                                  l_return_y;
-  gint                                  l_row;
+  guint                                 l_row;
   gint                                  l_text_width;
   decNumber                             l_two;
   decNumber                             l_unit_price;
@@ -631,7 +631,7 @@ print_notes(
   cairo_t*const                         io_cr,
   struct print_data*const               io_data,
   gint const                            i_page_width,
-  gint const                            i_page_height,
+  G_GNUC_UNUSED gint const              i_page_height,
   gint const                            i_pos_y)
 {
   PangoFontDescription*                 l_font;
@@ -660,7 +660,7 @@ print_estimate_disclaimer(
   cairo_t*const                         io_cr,
   gint const                            i_page_width,
   gint const                            i_pos_y,
-  gint const                            i_advance)
+  G_GNUC_UNUSED gint const              i_advance)
 {
   PangoFontDescription*                 l_font;
   gint                                  l_pos_y;
@@ -953,8 +953,6 @@ print_pageN(
   PangoFontDescription*                 l_font;
   gdouble                               l_height;
   PangoLayout*                          l_layout;
-  gint                                  l_new_y1;
-  gint                                  l_new_y2;
   gint                                  l_pages;
   gint                                  l_pos_x;
   gint                                  l_pos_y;
@@ -1076,7 +1074,7 @@ print_page (
 static void
 print_begin (
   GtkPrintOperation*const               io_operation,
-  GtkPrintContext*const                 io_context,
+  G_GNUC_UNUSED GtkPrintContext*const   io_context,
   gpointer                              io_user_data)
 {
   gchar                                 l_buffer[512];
@@ -1182,8 +1180,8 @@ print_begin (
 
 static void
 print_end (
-  GtkPrintOperation*const               io_operation,
-  GtkPrintContext*const                 io_context,
+  G_GNUC_UNUSED GtkPrintOperation*const io_operation,
+  G_GNUC_UNUSED GtkPrintContext*const   io_context,
   gpointer                              io_user_data)
 {
   struct print_data*                    l_data;

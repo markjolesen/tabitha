@@ -18,8 +18,8 @@ struct session                          g_session;
 
 G_MODULE_EXPORT void
 on_window_main_destroy(
-  GtkWidget*                            object,
-  gpointer                              user_data)
+  G_GNUC_UNUSED GtkWidget*              io_object,
+  G_GNUC_UNUSED gpointer                io_user_data)
 {
   gtk_main_quit();
 }
@@ -60,6 +60,8 @@ connect(
 
   return l_exit;
 }
+
+#include "smtp.h"
 
 int main(
   int                                   argc,

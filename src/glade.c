@@ -20,7 +20,7 @@ gchar*                                  g_module_filename= 0;
 gint
 glade_init(
   GError**                              o_error,
-  int                                   argc,
+  G_GNUC_UNUSED int                     argc,
   char*                                 argv[])
 {
   char const*const*                     l_env;

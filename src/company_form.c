@@ -299,7 +299,7 @@ copy(
 
 G_MODULE_EXPORT void
 on_company_save_button_clicked(
-  GtkButton*                            io_button,
+  G_GNUC_UNUSED GtkButton*              io_button,
   gpointer                              io_user_data)
 {
   struct company*                       l_company;

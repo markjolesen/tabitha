@@ -15,8 +15,8 @@
 
 G_MODULE_EXPORT void
 on_quit_menuitem_activate(
-  GtkMenuItem*                          object,
-  gpointer                              user_data)
+  G_GNUC_UNUSED GtkMenuItem*            object,
+  G_GNUC_UNUSED gpointer                user_data)
 {
 
   gtk_main_quit();
@@ -26,7 +26,7 @@ on_quit_menuitem_activate(
 
 G_MODULE_EXPORT void
 on_contacts_menuitem_activate(
-  GtkMenuItem*                          object,
+  G_GNUC_UNUSED GtkMenuItem*            object,
   gpointer                              user_data)
 {
   GtkWindow*                            l_window;
@@ -43,7 +43,7 @@ on_contacts_menuitem_activate(
 
 G_MODULE_EXPORT void
 on_sales_menuitem_activate(
-  GtkMenuItem*                          object,
+  G_GNUC_UNUSED GtkMenuItem*            object,
   gpointer                              user_data)
 {
   GtkWindow*                            l_window;
@@ -60,7 +60,7 @@ on_sales_menuitem_activate(
 
 G_MODULE_EXPORT void
 on_product_menuitem_activate(
-  GtkMenuItem*                          object,
+  G_GNUC_UNUSED GtkMenuItem*            object,
   gpointer                              user_data)
 {
   GtkWindow*                            l_window;
@@ -77,7 +77,7 @@ on_product_menuitem_activate(
 
 G_MODULE_EXPORT void
 on_company_menuitem_activate(
-  GtkMenuItem*                          object,
+  G_GNUC_UNUSED GtkMenuItem*            object,
   gpointer                              user_data)
 {
   GtkWindow*                            l_window;
@@ -94,7 +94,7 @@ on_company_menuitem_activate(
 
 G_MODULE_EXPORT void
 on_receipt_menuitem_activate(
-  GtkMenuItem*                          object,
+  G_GNUC_UNUSED GtkMenuItem*            object,
   gpointer                              user_data)
 {
   GtkWindow*                            l_window;

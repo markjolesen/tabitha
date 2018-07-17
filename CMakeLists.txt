@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.11)
 
 project(tabitha)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -rdynamic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -rdynamic -pedantic -Wall -Wextra")
 
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/glade/tabitha.glade
      DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -65,6 +65,7 @@ add_executable(tabitha
 	src/sales_index_form.c
 	src/sales_print.c
 	src/session.c
+	src/smtp.c
 	src/trim.c
 	src/decNumber/decContext.c
 	src/decNumber/decNumber.c)
@@ -73,5 +74,7 @@ target_link_libraries(tabitha
 	${GTK3_LIBRARIES}
 	${GLIB2_LIBRARIES}
 	${GMODULE_LIBRARIES}
-	${PSQL_LIBRARIES})
+	${PSQL_LIBRARIES}
+	ssl
+	crypto)
 
