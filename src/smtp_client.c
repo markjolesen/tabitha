@@ -1,5 +1,5 @@
 /*
-  smtp.c
+  smtp_client.c
 
   License CC0 PUBLIC DOMAIN
 
@@ -7,7 +7,7 @@
   and related or neighboring rights to tabitha. This work is published from:
   United States.
 */
-#include "smtp.h"
+#include "smtp_client.h"
 #include "error.h"
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
@@ -31,26 +31,57 @@ enum authtype
   auth_cram_md5                         = (1 << 5)
 };
 
-enum filetype
+struct smtp_client_address
 {
-  file_unknown                          = 0,
-  file_pdf
+  gchar*                                m_email;
 };
 
-struct smtp_address
+struct smtp_client_attachment
 {
-  gchar                                 m_address[smtp_size_address];
-};
-
-struct smtp_file
-{
-  enum filetype                         m_type;
   gchar*                                m_path;
+  gchar*                                m_mimetype;
 };
 
-G_DEFINE_QUARK(smtp-error-domain_quark, smtp_error_domain)
+enum
+{
+  prop_0,
+  prop_username,
+  prop_password,
+  prop_server,
+  prop_port,
+  prop_from,
+  prop_subject,
+  prop_to,
+  prop_body,
+  prop_last
+};
 
-extern void
+struct _SmtpClientPrivate
+{
+  gchar*                                m_username;
+  gchar*                                m_password;
+  gchar*                                m_server;
+  gchar*                                m_port;
+  gchar*                                m_from;
+  gchar*                                m_subject;
+  GArray*                               m_to;
+  gchar*                                m_body;
+  GArray*                               m_attachment;
+};
+
+typedef struct _SmtpClientPrivate SmtpClientPrivate;
+
+struct _SmtpClient
+{
+  GObject                               parent_instance;
+  SmtpClientPrivate*                    m_priv;
+};
+
+G_DEFINE_TYPE_WITH_PRIVATE (SmtpClient, smtp_client, G_TYPE_OBJECT)
+
+G_DEFINE_QUARK(smtp-client-error-domain_quark, smtp_client_error_domain)
+
+static void
 ssl_init_once()
 {
   static gboolean                       l_been_here= FALSE;
@@ -97,125 +128,459 @@ smtp_generate_boundary(
   return;
 }
 
-extern void
-smtp_add_pdf_attachment(
-  struct smtp*const                     io_smtp,
-  gchar const*                          i_path)
+static void
+smtp_client_address_add(
+  GArray*const                          io_array,
+  gchar const*                          i_email)
 {
-  struct smtp_file*                     l_file;
+  struct smtp_client_address*           l_address;
 
-  l_file= g_malloc0(sizeof(*l_file));
-  (*l_file).m_type= file_pdf;
-  (*l_file).m_path= g_strdup(i_path);
-  g_array_append_val((*io_smtp).m_attachment, (*l_file));
-  g_free(l_file);
+  l_address= (struct smtp_client_address*)g_malloc0(sizeof(*l_address));
+  (*l_address).m_email= g_strdup(i_email);
+  g_array_append_val(io_array, (*l_address));
+  g_free(l_address);
 
   return;
 }
 
-extern void
-smtp_add_to(
-  struct smtp*const                     io_smtp,
-  gchar const*                          i_to)
+static void
+smtp_client_address_clear(
+  GArray*const                          io_array)
 {
-  struct smtp_address*                  l_to;
-
-  l_to= g_malloc0(sizeof(*l_to));
-  g_strlcpy((*l_to).m_address, i_to, smtp_size_address);
-  g_array_append_val((*io_smtp).m_to, (*l_to));
-  g_free(l_to);
-
-  return;
-}
-
-extern void
-smtp_assign(
-  struct smtp*const                     o_smtp)
-{
-
-  memset(o_smtp, 0, sizeof(*o_smtp));
-  (*o_smtp).m_to= g_array_new(FALSE, TRUE, sizeof(struct smtp_address));
-  (*o_smtp).m_attachment= g_array_new(FALSE, TRUE, sizeof(struct smtp_file));
-
-  return;
-}
-
-extern void
-smtp_discharge(
-  struct smtp*const                     io_smtp)
-{
-  struct smtp_file*                     l_file;
+  struct smtp_client_address*           l_address;
   guint                                 l_slot;
 
-  if ((*io_smtp).m_to)
+  l_address= (struct smtp_client_address*)(*io_array).data;
+
+  for (l_slot= 0; (*io_array).len > l_slot; l_slot++)
   {
-    g_array_free((*io_smtp).m_to, TRUE);
+    g_free((*l_address).m_email);
+    memset(l_address, 0, sizeof(*l_address));
+    l_address++;
   }
 
-  if ((*io_smtp).m_attachment)
+  (*io_array).len= 0;
+
+  return;
+}
+
+static gchar**
+smtp_client_address_get(
+  GArray const*const                    io_array)
+{
+  struct smtp_client_address*           l_address;
+  guint                                 l_slot;
+  gchar**                               l_strv;
+
+  l_strv= g_malloc0(sizeof(gpointer) * (1 + (*io_array).len));
+
+  l_address= (struct smtp_client_address*)(*io_array).data;
+
+  for (l_slot= 0; (*io_array).len > l_slot; l_slot++)
   {
-    l_file= (struct smtp_file*)(*io_smtp).m_attachment->data;
-    for (l_slot= 0; (*io_smtp).m_attachment->len > l_slot; l_slot++)
-    {
-      g_free((*l_file).m_path);
-      l_file++;
-    }
-    g_array_free((*io_smtp).m_attachment, TRUE);
+    l_strv[l_slot]= g_strdup((*l_address).m_email);
+    l_address++;
   }
 
-  g_free((*io_smtp).m_body);
-  memset(io_smtp, 0, sizeof(*io_smtp));
-
-  return;
+  return l_strv;
 }
 
-extern void
-smtp_set_body(
-  struct smtp*const                     io_smtp,
-  gchar const*                          i_body)
+static void
+smtp_client_address_set(
+  GArray*const                          io_array,
+  gchar const**                         i_strv)
 {
+  struct smtp_client_address*           l_address;
+  gsize                                 l_slot;
+  gchar const*                          l_text;
 
-  g_free((*io_smtp).m_body);
-  (*io_smtp).m_body= g_strdup(i_body);
+  smtp_client_address_clear(io_array);
+
+  l_address= g_malloc(sizeof(*l_address));
+  l_slot= 0;
+
+  while((l_text= i_strv[l_slot]))
+  {
+    (*l_address).m_email= g_strdup(l_text);
+    g_array_append_val(io_array, (*l_address));
+    l_slot++;
+  }
+
+  g_free(l_address);
 
   return;
 }
 
-extern void
-smtp_set_from(
-  struct smtp*const                     io_smtp,
-  gchar const*                          i_from)
+static void
+smtp_client_attachment_add(
+  GArray*const                          io_array,
+  gchar const*                          i_path,
+  gchar const*                          i_mimetype)
 {
+  struct smtp_client_attachment*        l_attachment;
 
-  g_strlcpy((*io_smtp).m_from, i_from, sizeof((*io_smtp).m_from));
+  l_attachment= (struct smtp_client_attachment*)g_malloc0(sizeof(*l_attachment));
+  (*l_attachment).m_path= g_strdup(i_path);
+  (*l_attachment).m_mimetype= g_strdup(i_mimetype);
+  g_array_append_val(io_array, (*l_attachment));
+  g_free(l_attachment);
+
+  return;
+}
+
+static void
+smtp_client_attachment_clear(
+  GArray*const                          io_attachment)
+{
+  struct smtp_client_attachment*        l_attachment;
+  guint                                 l_slot;
+
+  l_attachment= (struct smtp_client_attachment*)(*io_attachment).data;
+
+  for (l_slot= 0; (*io_attachment).len > l_slot; l_slot++)
+  {
+    g_free((*l_attachment).m_path);
+    g_free((*l_attachment).m_mimetype);
+    memset(l_attachment, 0, sizeof(*l_attachment));
+    l_attachment++;
+  }
+
+  (*io_attachment).len= 0;
+
+  return;
+}
+
+static void
+smtp_client_finalize (
+  GObject*const                         io_gobject)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(SMTP_CLIENT(io_gobject));
+
+  g_free((*l_priv).m_username);
+  g_free((*l_priv).m_password);
+  g_free((*l_priv).m_server);
+  g_free((*l_priv).m_port);
+  g_free((*l_priv).m_from);
+  g_free((*l_priv).m_subject);
+  g_free((*l_priv).m_body);
+
+  if ((*l_priv).m_to)
+  {
+    smtp_client_address_clear((*l_priv).m_to);
+    g_array_free((*l_priv).m_to, TRUE);
+  }
+
+  if ((*l_priv).m_attachment)
+  {
+    smtp_client_attachment_clear((*l_priv).m_attachment);
+    g_array_free((*l_priv).m_attachment, TRUE);
+  }
+
+  G_OBJECT_CLASS(smtp_client_parent_class)->finalize(io_gobject);
+
+  return;
+}
+
+static void
+smtp_client_init(
+  SmtpClient*const                      io_self)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(io_self);
+
+  (*l_priv).m_to= g_array_new(FALSE, TRUE, sizeof(struct smtp_client_address));
+  (*l_priv).m_attachment= g_array_new(FALSE, TRUE, sizeof(struct smtp_client_attachment));
+
+  return;
+}
+
+static void
+smtp_client_set_property(
+  GObject*const                         io_object,
+  guint const                           i_prop_id,
+  GValue const*const                    i_value,
+  GParamSpec*const                      io_pspec)
+{
+  gchar const**                         l_strv;
+  SmtpClient*                           l_self;
+
+  l_self= SMTP_CLIENT(io_object);
+
+  switch(i_prop_id)
+  {
+    case prop_username:
+      g_free((*l_self).m_priv->m_username);
+      (*l_self).m_priv->m_username= g_value_dup_string(i_value);
+      break;
+    case prop_password:
+      g_free((*l_self).m_priv->m_password);
+      (*l_self).m_priv->m_password= g_value_dup_string(i_value);
+      break;
+    case prop_server:
+      g_free((*l_self).m_priv->m_server);
+      (*l_self).m_priv->m_server= g_value_dup_string(i_value);
+      break;
+    case prop_port:
+      g_free((*l_self).m_priv->m_port);
+      (*l_self).m_priv->m_port= g_value_dup_string(i_value);
+      break;
+    case prop_from:
+      g_free((*l_self).m_priv->m_from);
+      (*l_self).m_priv->m_from= g_value_dup_string(i_value);
+      break;
+    case prop_subject:
+      g_free((*l_self).m_priv->m_subject);
+      (*l_self).m_priv->m_subject= g_value_dup_string(i_value);
+      break;
+    case prop_to:
+      l_strv= (gchar const**)g_value_get_boxed(i_value);
+      smtp_client_address_set((*l_self).m_priv->m_to, l_strv);
+      break;
+    case prop_body:
+      g_free((*l_self).m_priv->m_body);
+      (*l_self).m_priv->m_body= g_value_dup_string(i_value);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(io_object, i_prop_id, io_pspec);
+      break;
+  }
+
+  return;
+}
+
+static void
+smtp_client_get_property (
+  GObject*const                         io_object,
+  guint const                           i_prop_id,
+  GValue*const                          o_value,
+  GParamSpec*const                      i_pspec)
+{
+  SmtpClient*                           l_self;
+  gchar**                               l_strv;
+
+  l_self= SMTP_CLIENT(io_object);
+
+  switch(i_prop_id)
+  {
+    case prop_username:
+      g_value_set_string(o_value, (*l_self).m_priv->m_username);
+      break;
+    case prop_password:
+      g_value_set_string(o_value, (*l_self).m_priv->m_password);
+      break;
+    case prop_server:
+      g_value_set_string(o_value, (*l_self).m_priv->m_server);
+      break;
+    case prop_port:
+      g_value_set_string(o_value, (*l_self).m_priv->m_port);
+      break;
+    case prop_from:
+      g_value_set_string(o_value, (*l_self).m_priv->m_from);
+      break;
+    case prop_subject:
+      g_value_set_string(o_value, (*l_self).m_priv->m_subject);
+      break;
+    case prop_to:
+      l_strv= smtp_client_address_get((*l_self).m_priv->m_to);
+      g_value_take_boxed(o_value, l_strv);
+      break;
+    case prop_body:
+      g_value_set_string(o_value, (*l_self).m_priv->m_body);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID(io_object, i_prop_id, i_pspec);
+      break;
+  }
+
+  return;
+}
+
+static void
+smtp_client_class_init(
+  SmtpClientClass*const                 io_klass)
+{
+  GObjectClass*                         l_object_class;
+
+  l_object_class= G_OBJECT_CLASS(io_klass);
+
+  (*l_object_class).finalize= smtp_client_finalize;
+  (*l_object_class).set_property= smtp_client_set_property;
+  (*l_object_class).get_property= smtp_client_get_property;
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_username,
+    g_param_spec_string(
+      "username",
+      "Username",
+      "User login name",
+      0,
+      G_PARAM_READWRITE));
+    
+  g_object_class_install_property(
+    l_object_class,
+    prop_password,
+    g_param_spec_string(
+      "password",
+      "Password",
+      "User password",
+      0,
+      G_PARAM_READWRITE));
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_server,
+    g_param_spec_string(
+      "server",
+      "server",
+      "SMTP server",
+      0,
+      G_PARAM_READWRITE));
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_port,
+    g_param_spec_string(
+      "port",
+      "Port",
+      "Server port number",
+      "465",
+      G_PARAM_READWRITE));
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_from,
+    g_param_spec_string(
+      "from",
+      "From",
+      "From e-mail address",
+      0,
+      G_PARAM_READWRITE));
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_subject,
+    g_param_spec_string(
+      "subject",
+      "Subject",
+      "Subject line",
+      0,
+      G_PARAM_READWRITE));
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_to,
+    g_param_spec_boxed(
+      "to",
+      "To",
+      "To address list",
+      G_TYPE_STRV,
+      G_PARAM_READWRITE));
+
+  g_object_class_install_property(
+    l_object_class,
+    prop_body,
+    g_param_spec_string(
+      "body",
+      "Body",
+      "Message body",
+      0,
+      G_PARAM_READWRITE));
 
   return;
 }
 
 extern void
-smtp_set_server(
-  struct smtp*const                     io_smtp,
+smtp_client_add_attachment(
+  SmtpClient*const                      io_smtp,
+  gchar const*                          i_path,
+  gchar const*                          i_mimetype)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  smtp_client_attachment_add((*l_priv).m_attachment, i_path, i_mimetype);
+
+  return;
+}
+
+extern void
+smtp_client_add_to(
+  SmtpClient*const                      io_smtp,
+  gchar const*                          i_email)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  smtp_client_address_add((*l_priv).m_to, i_email);
+
+  return;
+}
+
+extern void
+smtp_client_set_body(
+  SmtpClient*const                      io_smtp,
+  gchar const*                          i_message)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  g_free((*l_priv).m_body);
+  (*l_priv).m_body= g_strdup(i_message);
+
+  return;
+}
+
+extern void
+smtp_client_set_from(
+  SmtpClient*const                      io_smtp,
+  gchar const*                          i_email)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  g_free((*l_priv).m_from);
+  (*l_priv).m_from= g_strdup(i_email);
+
+  return;
+}
+
+extern void
+smtp_client_set_server(
+  SmtpClient*const                      io_smtp,
   gchar const*                          i_username,
   gchar const*                          i_password,
   gchar const*                          i_server,
   gchar const*                          i_port)
 {
+  SmtpClientPrivate*                    l_priv;
 
-  g_strlcpy((*io_smtp).m_username, i_username, sizeof((*io_smtp).m_username));
-  g_strlcpy((*io_smtp).m_password, i_password, sizeof((*io_smtp).m_password));
-  g_strlcpy((*io_smtp).m_server, i_server, sizeof((*io_smtp).m_server));
-  g_strlcpy((*io_smtp).m_port, i_port, sizeof((*io_smtp).m_port));
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  g_free((*l_priv).m_username);
+  g_free((*l_priv).m_password);
+  g_free((*l_priv).m_server);
+  g_free((*l_priv).m_port);
+  (*l_priv).m_username= g_strdup(i_username);
+  (*l_priv).m_password= g_strdup(i_password);
+  (*l_priv).m_server= g_strdup(i_server);
+  (*l_priv).m_port= g_strdup(i_port);
 
   return;
 }
 
 extern void
-smtp_set_subject(
-  struct smtp*const                     io_smtp,
+smtp_client_set_subject(
+  SmtpClient*const                      io_smtp,
   gchar const*                          i_subject)
 {
+  SmtpClientPrivate*                    l_priv;
 
-  g_strlcpy((*io_smtp).m_subject, i_subject, sizeof((*io_smtp).m_subject));
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  g_free((*l_priv).m_subject);
+  (*l_priv).m_subject= g_strdup(i_subject);
 
   return;
 }
@@ -239,8 +604,6 @@ smtp_write(
   l_exit= 0;
   l_tail= i_buffer;
 
-for (guint slot= 0; slot < i_buffer_size; slot++) printf("%c", i_buffer[slot]);
-
   do
   {
 
@@ -255,15 +618,12 @@ for (guint slot= 0; slot < i_buffer_size; slot++) printf("%c", i_buffer[slot]);
     {
       l_bytes_left-= l_rc;
       l_tail+= l_rc;
-      /*l_attempts= 0;*/
     }
     else
     {
-      /*l_attempts++;*/
-
       l_rc= BIO_should_retry(io_bio);
 
-      if (FALSE == l_rc /*|| 10 <= l_attempts*/)
+      if (FALSE == l_rc)
       {
         l_rc= ERR_get_error();
 
@@ -277,8 +637,8 @@ for (guint slot= 0; slot < i_buffer_size; slot++) printf("%c", i_buffer[slot]);
         }
 
         l_error= g_error_new(
-          smtp_error_domain,
-          error_smtp_unable_to_write,
+          smtp_client_error_domain,
+          smtp_client_unable_to_write,
           "Unable to write to SMTP server: %s",
           l_text);
 
@@ -304,63 +664,6 @@ smtp_write_string(
   GString const*                        i_string);
 
 #define smtp_write_string(e,b,s) smtp_write((e), (b), (s)->str, (s)->len)
-
-#if 0
-static void
-smtp_flush_input(
-  BIO*const                             io_bio)
-{
-  gchar                                 l_char;
-  gint                                  l_fd;
-  int                                   l_rc;
-  fd_set                                l_set;
-  struct timeval                        l_timeout;
-
-  BIO_get_fd(io_bio, &l_fd);
-
-  do
-  {
-
-    if (FALSE == BIO_pending(io_bio))
-    {
-      FD_ZERO(&l_set);
-      FD_SET(l_fd, &l_set);
-
-      l_timeout.tv_sec= 3;
-      l_timeout.tv_usec= 0;
-
-      l_rc= select(l_fd+1, &l_set, 0, 0, &l_timeout);
-
-      if (-1 == l_rc)
-      {
-        break;
-      }
-
-      if (0 == l_rc)
-      {
-        break;
-      }
-    }
-
-    do
-    {
-
-      BIO_read(io_bio, &l_char, 1);
-
-printf("%c", l_char);
-
-      if ('\n' == l_char)
-      {
-        break;
-      }
-
-    }while(1);
-
-  }while(1);
-
-  return;
-}
-#endif
 
 static int
 smtp_read_line(
@@ -401,8 +704,8 @@ smtp_read_line(
       if (-1 == l_rc)
       {
         l_error= g_error_new(
-          smtp_error_domain,
-          error_smtp_unable_to_select_socket,
+          smtp_client_error_domain,
+          smtp_client_unable_to_select_socket,
           "Unable to select socket");
         l_exit= -1;
         break;
@@ -421,7 +724,6 @@ smtp_read_line(
 
       if (1 == l_rc)
       {
-printf("%c", l_char);
         if ('\r' != l_char)
         {
           if ('\n' != l_char)
@@ -452,8 +754,8 @@ printf("%c", l_char);
           }
 
           l_error= g_error_new(
-            smtp_error_domain,
-            error_smtp_unable_to_read,
+            smtp_client_error_domain,
+            smtp_client_unable_to_read,
             "Unable to read from SMTP server: %s",
             l_text);
 
@@ -501,8 +803,8 @@ smtp_response_read(
     if (0 == (*o_buffer).len)
     {
       l_error= g_error_new(
-        smtp_error_domain,
-        error_smtp_server_did_not_respond,
+        smtp_client_error_domain,
+        smtp_client_server_did_not_respond,
         "Unable to read from SMTP server");
       l_exit= -1;
       break;
@@ -513,8 +815,8 @@ smtp_response_read(
     if (i_expected_code != l_code)
     {
       l_error= g_error_new(
-        smtp_error_domain,
-        error_smtp_server_not_ready,
+        smtp_client_error_domain,
+        smtp_client_server_not_ready,
         "Server not ready: %u",
         l_code);
 
@@ -571,8 +873,8 @@ smtp_connect(
       }
 
       l_error= g_error_new(
-        smtp_error_domain,
-        error_smtp_unable_to_connect,
+        smtp_client_error_domain,
+        smtp_client_unable_to_connect,
         "Unable to connect to SMTP server: %s",
         l_text);
 
@@ -830,8 +1132,8 @@ smtp_hello(
     if (l_rc)
     {
       l_error= g_error_new(
-        smtp_error_domain,
-        error_smtp_unable_to_get_hostname,
+        smtp_client_error_domain,
+        smtp_client_unable_to_get_hostname,
         "Unable to get hostname");
       l_exit= -1;
       break;
@@ -861,8 +1163,8 @@ smtp_hello(
     else
     {
         l_error= g_error_new(
-          smtp_error_domain,
-          error_smtp_protocol_unsupported,
+          smtp_client_error_domain,
+          smtp_client_protocol_unsupported,
           "Unsupported authentication protocol");
 
         l_exit= -1;
@@ -884,7 +1186,7 @@ smtp_mail_from(
   GError**                              o_error,
   BIO*const                             io_bio,
   GString*const                         o_buffer,
-  struct smtp const*const               i_smtp)
+  gchar const*                          i_email)
 {
   GError*                               l_error;
   int                                   l_exit;
@@ -895,7 +1197,7 @@ smtp_mail_from(
   do
   {
 
-    g_string_printf(o_buffer, "MAIL FROM:<%s>\r\n", (*i_smtp).m_from);
+    g_string_printf(o_buffer, "MAIL FROM:<%s>\r\n", i_email);
     l_exit= smtp_write_string(&l_error, io_bio, o_buffer);
 
     if (l_exit)
@@ -920,22 +1222,22 @@ smtp_rcpt_to(
   GError**                              o_error,
   BIO*const                             io_bio,
   GString*const                         o_buffer,
-  struct smtp const*const               i_smtp)
+  GArray const*const                    i_array)
 {
+  struct smtp_client_address const*     l_address;
   GError*                               l_error;
   int                                   l_exit;
   guint                                 l_slot;
-  struct smtp_address const*            l_to;
 
   l_error= 0;
   l_exit= 0;
 
-  l_to= (struct smtp_address*)(*i_smtp).m_to->data;
+  l_address= (struct smtp_client_address*)(*i_array).data;
 
-  for (l_slot= 0; (*i_smtp).m_to->len > l_slot; l_slot++)
+  for (l_slot= 0; (*i_array).len > l_slot; l_slot++)
   {
 
-    g_string_printf(o_buffer, "RCPT TO:<%s>\r\n", (*l_to).m_address);
+    g_string_printf(o_buffer, "RCPT TO:<%s>\r\n", (*l_address).m_email);
     l_exit= smtp_write_string(&l_error, io_bio, o_buffer);
 
     if (l_exit)
@@ -950,7 +1252,7 @@ smtp_rcpt_to(
       break;
     }
 
-    l_to++;
+    l_address++;
 
   }
 
@@ -967,14 +1269,14 @@ smtp_headers(
   GError**                              o_error,
   BIO*const                             io_bio,
   GString*const                         o_buffer,
-  struct smtp const*const               i_smtp)
+  SmtpClientPrivate const*const         i_smtp)
 {
   GError*                               l_error;
   int                                   l_exit;
   GDateTime*                            l_date;
   guint                                 l_slot;
   gchar*                                l_text;
-  struct smtp_address const*            l_to;
+  struct smtp_client_address const*     l_to;
 
   l_error= 0;
   l_exit= 0;
@@ -1025,7 +1327,7 @@ smtp_headers(
       break;
     }
 
-    l_to= (struct smtp_address*)(*i_smtp).m_to->data;
+    l_to= (struct smtp_client_address*)(*i_smtp).m_to->data;
 
     for (l_slot= 0; (*i_smtp).m_to->len > l_slot; l_slot++)
     {
@@ -1040,7 +1342,7 @@ smtp_headers(
         }
       }
 
-      g_string_printf(o_buffer, "<%s>", (*l_to).m_address);
+      g_string_printf(o_buffer, "<%s>", (*l_to).m_email);
       l_exit= smtp_write_string(&l_error, io_bio, o_buffer);
 
       if (l_exit)
@@ -1074,7 +1376,7 @@ smtp_attachment(
   GError**                              o_error,
   BIO*const                             io_bio,
   GString*const                         o_buffer,
-  struct smtp const*const               i_smtp,
+  GArray const*const                    i_array,
   gchar const                           i_boundary[smtp_size_boundary])
 {
   gchar*                                l_basename;
@@ -1082,23 +1384,22 @@ smtp_attachment(
   gboolean                              l_bool;
   GError*                               l_error;
   int                                   l_exit;
-  struct smtp_file*                     l_file;
-  GFile*                                l_fileobj;
+  struct smtp_client_attachment*        l_attachment;
+  GFile*                                l_file;
   gsize                                 l_len;
   guint                                 l_slot;
   gchar*                                l_text;
-  gchar const*                          l_type;
 
   l_blob= 0;
   l_error= 0;
   l_exit= 0;
   l_text= 0;
 
-  l_file= (struct smtp_file*)(*i_smtp).m_attachment->data;
+  l_attachment= (struct smtp_client_attachment*)(*i_array).data;
 
-  for (l_slot= 0; (*i_smtp).m_attachment->len > l_slot; l_slot++)
+  for (l_slot= 0; (*i_array).len > l_slot; l_slot++)
   {
-    l_bool= g_file_get_contents((*l_file).m_path, &l_blob, &l_len, &l_error);
+    l_bool= g_file_get_contents((*l_attachment).m_path, &l_blob, &l_len, &l_error);
 
     if (FALSE == l_bool)
     {
@@ -1110,15 +1411,9 @@ smtp_attachment(
     g_free(l_blob);
     l_blob= 0;
 
-    l_fileobj= g_file_new_for_path((*l_file).m_path);
-    l_basename= g_file_get_basename(l_fileobj);
-    g_object_unref(l_fileobj);
-
-    switch((*l_file).m_type)
-    {
-      default:
-        l_type= "application/pdf";
-    }
+    l_file= g_file_new_for_path((*l_attachment).m_path);
+    l_basename= g_file_get_basename(l_file);
+    g_object_unref(l_file);
 
     g_string_printf(
       o_buffer,
@@ -1127,7 +1422,7 @@ smtp_attachment(
       "Content-Disposition: attachment; filename=\"%s\"\r\n"
       "Content-Transfer-Encoding: base64\r\n\r\n",
       i_boundary,
-      l_type,
+      (*l_attachment).m_mimetype,
       l_basename,
       l_basename);
 
@@ -1154,7 +1449,7 @@ smtp_attachment(
       break;
     }
 
-    l_file++;
+    l_attachment++;
   }
 
   g_free(l_text);
@@ -1169,9 +1464,9 @@ smtp_attachment(
 }
 
 extern int
-smtp_send(
+smtp_client_send(
   GError**                              o_error,
-  struct smtp const*const               i_smtp)
+  SmtpClient const*const                i_smtp)
 {
   gchar                                 l_alt[smtp_size_boundary];
   BIO*                                  l_bio;
@@ -1181,6 +1476,7 @@ smtp_send(
   GError*                               l_error;
   int                                   l_exit;
   gchar                                 l_multi[smtp_size_boundary];
+  SmtpClientPrivate const*              l_priv;
   SSL*                                  l_ssl;
 
   smtp_generate_boundary(l_alt);
@@ -1191,6 +1487,7 @@ smtp_send(
   l_error= 0;
   l_exit= 0;
   smtp_generate_boundary(l_multi);
+  l_priv= smtp_client_get_instance_private((SmtpClient*)i_smtp);
   l_ssl= 0;
 
   ssl_init_once();
@@ -1200,8 +1497,8 @@ smtp_send(
 
     l_ctx= SSL_CTX_new(SSLv23_client_method());
     l_bio= BIO_new_ssl_connect(l_ctx);
-    BIO_set_conn_hostname(l_bio, (*i_smtp).m_server);
-    BIO_set_conn_port(l_bio, (*i_smtp).m_port);
+    BIO_set_conn_hostname(l_bio, (*l_priv).m_server);
+    BIO_set_conn_port(l_bio, (*l_priv).m_port);
     BIO_set_conn_ip_family(l_bio, BIO_FAMILY_IPV4);
     BIO_set_nbio(l_bio, 1);
     BIO_get_ssl(l_bio, &l_ssl);
@@ -1228,22 +1525,22 @@ smtp_send(
       &l_error,
       l_bio,
       l_buffer,
-      (*i_smtp).m_username,
-      (*i_smtp).m_password);
+      (*l_priv).m_username,
+      (*l_priv).m_password);
 
     if (l_exit)
     {
       break;
     }
 
-    l_exit= smtp_mail_from(&l_error, l_bio, l_buffer, i_smtp);
+    l_exit= smtp_mail_from(&l_error, l_bio, l_buffer, (*l_priv).m_from);
 
     if (l_exit)
     {
       break;
     }
 
-    l_exit= smtp_rcpt_to(&l_error, l_bio, l_buffer, i_smtp);
+    l_exit= smtp_rcpt_to(&l_error, l_bio, l_buffer, (*l_priv).m_to);
 
     if (l_exit)
     {
@@ -1264,7 +1561,7 @@ smtp_send(
       break;
     }
 
-    l_exit= smtp_headers(&l_error, l_bio, l_buffer, i_smtp);
+    l_exit= smtp_headers(&l_error, l_bio, l_buffer, l_priv);
 
     if (l_exit)
     {
@@ -1291,10 +1588,10 @@ smtp_send(
       break;
     }
 
-    if ((*i_smtp).m_body)
+    if ((*l_priv).m_body)
     {
 
-      l_exit= smtp_write(&l_error, l_bio, (*i_smtp).m_body, strlen((*i_smtp).m_body));
+      l_exit= smtp_write(&l_error, l_bio, (*l_priv).m_body, strlen((*l_priv).m_body));
 
       if (l_exit)
       {
@@ -1310,9 +1607,9 @@ smtp_send(
       break;
     }
 
-    if ((*i_smtp).m_attachment)
+    if ((*l_priv).m_attachment)
     {
-      l_exit= smtp_attachment(&l_error, l_bio, l_buffer, i_smtp, l_multi);
+      l_exit= smtp_attachment(&l_error, l_bio, l_buffer, (*l_priv).m_attachment, l_multi);
 
       if (l_exit)
       {

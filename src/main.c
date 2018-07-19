@@ -61,8 +61,6 @@ connect(
   return l_exit;
 }
 
-#include "smtp.h"
-
 int main(
   int                                   argc,
   char*                                 argv[])

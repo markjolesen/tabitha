@@ -65,7 +65,7 @@ add_executable(tabitha
 	src/sales_index_form.c
 	src/sales_print.c
 	src/session.c
-	src/smtp.c
+	src/smtp_client.c
 	src/trim.c
 	src/decNumber/decContext.c
 	src/decNumber/decNumber.c)
