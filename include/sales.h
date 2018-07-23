@@ -11,6 +11,7 @@
 
 #include "contact.h"
 #include "product.h"
+#include "email.h"
 
 enum salestype
 {
@@ -135,6 +136,15 @@ sales_detail_trim(
   struct sales_detail*const             io_detail);
 
 extern int
+sales_email(
+  struct session*const                  io_session,
+  GtkWindow*const                       io_parent,
+  GtkBuilder*const                      io_builder,
+  struct email const*const              i_email,
+  gchar const                           i_sales_id[size_pg_big_int],
+  enum salestype const                  i_sales_type);
+
+extern int
 sales_form(
   struct session*const                  io_session,
   GtkWindow*const                       io_parent,
@@ -144,7 +154,8 @@ extern int
 sales_print(
   struct session*const                  io_session,
   GtkWindow*const                       io_parent,
-  gchar const                           i_sales_id[size_pg_big_int]);
+  gchar const                           i_sales_id[size_pg_big_int],
+  gchar const*                          i_path);
 
 extern int
 sales_update(

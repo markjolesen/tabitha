@@ -31,6 +31,11 @@ enum smtp_client_error_code
   smtp_client_unable_to_write
 };
 
+typedef gboolean (*smtp_status_callback)(
+  gpointer                              io_user_data,
+  SmtpClient const*const                i_smtp,
+  gchar const*                          i_message);
+
 extern GQuark
 smtp_error_domain_quark();
 
@@ -43,7 +48,8 @@ extern void
 smtp_client_add_attachment(
   SmtpClient*const                      io_smtp,
   gchar const*                          i_path,
-  gchar const*                          i_mimetype);
+  gchar const*                          i_mimetype,
+  gchar const*                          i_name);
 
 extern void
 smtp_client_add_to(
@@ -72,6 +78,12 @@ smtp_client_set_server(
   gchar const*                          i_password,
   gchar const*                          i_server,
   gchar const*                          i_port);
+
+extern void
+smtp_client_set_status_callback(
+  SmtpClient*const                      io_smtp,
+  smtp_status_callback                  i_callback,
+  gpointer                              io_user_data);
 
 extern void
 smtp_client_set_subject(

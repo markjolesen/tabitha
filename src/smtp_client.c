@@ -40,6 +40,7 @@ struct smtp_client_attachment
 {
   gchar*                                m_path;
   gchar*                                m_mimetype;
+  gchar*                                m_name;
 };
 
 enum
@@ -67,6 +68,8 @@ struct _SmtpClientPrivate
   GArray*                               m_to;
   gchar*                                m_body;
   GArray*                               m_attachment;
+  smtp_status_callback                  m_callback;
+  gpointer                              m_user_data;
 };
 
 typedef struct _SmtpClientPrivate SmtpClientPrivate;
@@ -215,13 +218,15 @@ static void
 smtp_client_attachment_add(
   GArray*const                          io_array,
   gchar const*                          i_path,
-  gchar const*                          i_mimetype)
+  gchar const*                          i_mimetype,
+  gchar const*                          i_name)
 {
   struct smtp_client_attachment*        l_attachment;
 
   l_attachment= (struct smtp_client_attachment*)g_malloc0(sizeof(*l_attachment));
   (*l_attachment).m_path= g_strdup(i_path);
   (*l_attachment).m_mimetype= g_strdup(i_mimetype);
+  (*l_attachment).m_name= g_strdup(i_name);
   g_array_append_val(io_array, (*l_attachment));
   g_free(l_attachment);
 
@@ -241,6 +246,7 @@ smtp_client_attachment_clear(
   {
     g_free((*l_attachment).m_path);
     g_free((*l_attachment).m_mimetype);
+    g_free((*l_attachment).m_name);
     memset(l_attachment, 0, sizeof(*l_attachment));
     l_attachment++;
   }
@@ -497,12 +503,13 @@ extern void
 smtp_client_add_attachment(
   SmtpClient*const                      io_smtp,
   gchar const*                          i_path,
-  gchar const*                          i_mimetype)
+  gchar const*                          i_mimetype,
+  gchar const*                          i_name)
 {
   SmtpClientPrivate*                    l_priv;
 
   l_priv= smtp_client_get_instance_private(io_smtp);
-  smtp_client_attachment_add((*l_priv).m_attachment, i_path, i_mimetype);
+  smtp_client_attachment_add((*l_priv).m_attachment, i_path, i_mimetype, i_name);
 
   return;
 }
@@ -567,6 +574,21 @@ smtp_client_set_server(
   (*l_priv).m_password= g_strdup(i_password);
   (*l_priv).m_server= g_strdup(i_server);
   (*l_priv).m_port= g_strdup(i_port);
+
+  return;
+}
+
+extern void
+smtp_client_set_status_callback(
+  SmtpClient*const                      io_smtp,
+  smtp_status_callback                  i_callback,
+  gpointer                              io_user_data)
+{
+  SmtpClientPrivate*                    l_priv;
+
+  l_priv= smtp_client_get_instance_private(io_smtp);
+  (*l_priv).m_callback= i_callback;
+  (*l_priv).m_user_data= io_user_data;
 
   return;
 }
@@ -1390,6 +1412,7 @@ smtp_attachment(
   guint                                 l_slot;
   gchar*                                l_text;
 
+  l_basename= 0;
   l_blob= 0;
   l_error= 0;
   l_exit= 0;
@@ -1411,19 +1434,25 @@ smtp_attachment(
     g_free(l_blob);
     l_blob= 0;
 
-    l_file= g_file_new_for_path((*l_attachment).m_path);
-    l_basename= g_file_get_basename(l_file);
-    g_object_unref(l_file);
+    if (0 == (*l_attachment).m_name || 0 == (*l_attachment).m_name[0])
+    {
+      l_file= g_file_new_for_path((*l_attachment).m_path);
+      l_basename= g_file_get_basename(l_file);
+      g_object_unref(l_file);
+    }
+    else
+    {
+      l_basename= g_strdup((*l_attachment).m_name);
+    }
 
     g_string_printf(
       o_buffer,
       "--%s\r\n"
-      "Content-Type: %s; name=\"%s\"\r\n"
+      "Content-Type: %s;\r\n"
       "Content-Disposition: attachment; filename=\"%s\"\r\n"
       "Content-Transfer-Encoding: base64\r\n\r\n",
       i_boundary,
       (*l_attachment).m_mimetype,
-      l_basename,
       l_basename);
 
     g_free(l_basename);
@@ -1471,6 +1500,7 @@ smtp_client_send(
   gchar                                 l_alt[smtp_size_boundary];
   BIO*                                  l_bio;
   GString*                              l_buffer;
+  gboolean                              l_cancel;
   gboolean                              l_connected;
   SSL_CTX*                              l_ctx;
   GError*                               l_error;
@@ -1482,6 +1512,7 @@ smtp_client_send(
   smtp_generate_boundary(l_alt);
   l_bio= 0;
   l_buffer= g_string_sized_new(smtp_size_line);
+  l_cancel= FALSE;
   l_connected= FALSE;
   l_ctx= 0;
   l_error= 0;
@@ -1494,6 +1525,16 @@ smtp_client_send(
 
   do
   {
+
+    if ((*l_priv).m_callback)
+    {
+      g_string_printf(l_buffer, "Connecting to %s port %s\n", (*l_priv).m_server, (*l_priv).m_port);
+      l_cancel= (*l_priv).m_callback((*l_priv).m_user_data, i_smtp, (*l_buffer).str);
+      if (l_cancel)
+      {
+        break;
+      }
+    }
 
     l_ctx= SSL_CTX_new(SSLv23_client_method());
     l_bio= BIO_new_ssl_connect(l_ctx);
@@ -1521,6 +1562,16 @@ smtp_client_send(
       break;
     }
 
+    if ((*l_priv).m_callback)
+    {
+      g_string_printf(l_buffer, "Server negotiation\n");
+      l_cancel= (*l_priv).m_callback((*l_priv).m_user_data, i_smtp, (*l_buffer).str);
+      if (l_cancel)
+      {
+        break;
+      }
+    }
+
     l_exit= smtp_hello(
       &l_error,
       l_bio,
@@ -1545,6 +1596,16 @@ smtp_client_send(
     if (l_exit)
     {
       break;
+    }
+
+    if ((*l_priv).m_callback)
+    {
+      g_string_printf(l_buffer, "Sending data\n");
+      l_cancel= (*l_priv).m_callback((*l_priv).m_user_data, i_smtp, (*l_buffer).str);
+      if (l_cancel)
+      {
+        break;
+      }
     }
 
     l_exit= smtp_write(&l_error, l_bio, "DATA\r\n", 6);
@@ -1609,6 +1670,17 @@ smtp_client_send(
 
     if ((*l_priv).m_attachment)
     {
+
+      if ((*l_priv).m_callback)
+      {
+        g_string_printf(l_buffer, "Sending attachment's\n");
+        l_cancel= (*l_priv).m_callback((*l_priv).m_user_data, i_smtp, (*l_buffer).str);
+        if (l_cancel)
+        {
+          break;
+        }
+      }
+
       l_exit= smtp_attachment(&l_error, l_bio, l_buffer, (*l_priv).m_attachment, l_multi);
 
       if (l_exit)
@@ -1633,6 +1705,12 @@ smtp_client_send(
     }
 
   }while(0);
+
+  if ((*l_priv).m_callback)
+  {
+    g_string_printf(l_buffer, "Ending session\n");
+    (*l_priv).m_callback((*l_priv).m_user_data, i_smtp, (*l_buffer).str);
+  }
 
   if (l_connected)
   {

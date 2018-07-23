@@ -47,6 +47,8 @@ add_executable(tabitha
 	src/contact_form.c
 	src/contact_index_form.c
 	src/edit_form.c
+	src/email.c
+	src/email_form.c
 	src/error.c
 	src/format.c
 	src/glade.c
@@ -61,6 +63,7 @@ add_executable(tabitha
 	src/sales.c
 	src/sales_detail.c
 	src/sales_detail_form.c
+	src/sales_email.c
 	src/sales_form.c
 	src/sales_index_form.c
 	src/sales_print.c

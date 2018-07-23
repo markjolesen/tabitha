@@ -10,6 +10,7 @@
 #include "sales.h"
 #include "edit.h"
 #include "calendar.h"
+#include "email.h"
 #include "error.h"
 #include <gmodule.h>
 
@@ -516,9 +517,81 @@ on_sales_print_button_clicked(
 
     l_text= gtk_entry_get_text((*l_property).m_sales_id);
     g_strlcpy(l_sales_id, l_text, sizeof(l_sales_id));
-    sales_print(l_session, GTK_WINDOW(l_dialog), l_sales_id);
+    sales_print(l_session, GTK_WINDOW(l_dialog), l_sales_id, 0);
 
   }while(0);
+
+  return;
+}
+
+G_MODULE_EXPORT void
+on_sales_email_button_clicked(
+  G_GNUC_UNUSED GtkToolButton*const     io_button,
+  gpointer                              io_user_data)
+{
+  GtkBuilder*                           l_builder;
+  GtkDialog*                            l_dialog;
+  GError*                               l_error;
+  struct email*                         l_email;
+  int                                   l_exit;
+  struct property*                      l_property;
+  gchar                                 l_sales_id[size_pg_big_int];
+  enum salestype                        l_sales_type;
+  struct session*                       l_session;
+  gchar const*                          l_text;
+
+  l_email= (struct email*)g_malloc0(sizeof(*l_email));
+  email_assign(l_email);
+  memset(l_sales_id, 0, sizeof(l_sales_id));
+  l_error= 0;
+
+  l_dialog= GTK_DIALOG(GTK_WIDGET(io_user_data));
+  l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
+  l_builder= GTK_BUILDER(g_object_get_data(G_OBJECT(l_dialog), "builder"));
+  l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
+
+  do
+  {
+
+    l_exit= save(l_dialog);
+
+    if (l_exit)
+    {
+      break;
+    }
+
+    l_sales_type= gtk_combo_box_get_active(GTK_COMBO_BOX((*l_property).m_sales_type));
+    l_text= gtk_entry_get_text((*l_property).m_sales_id);
+    g_strlcpy(l_sales_id, l_text, sizeof(l_sales_id));
+    l_exit= email_load(&l_error, l_email, l_session, l_sales_id);
+
+    if (l_exit)
+    {
+        _error_display(GTK_WINDOW(l_dialog), l_error);
+        g_clear_error(&l_error);
+    }
+
+    l_exit= email_form(l_email, l_session, GTK_WINDOW(l_dialog), l_builder);
+
+    if (l_exit)
+    {
+      break;
+    }
+
+    email_trim(l_email);
+
+    l_exit= sales_email(
+      l_session,
+      GTK_WINDOW(l_dialog),
+      l_builder,
+      l_email,
+      l_sales_id,
+      l_sales_type);
+
+  }while(0);
+
+  email_discharge(l_email);
+  g_free(l_email);
 
   return;
 }

@@ -1199,8 +1199,10 @@ extern int
 sales_print(
   struct session*const                  io_session,
   GtkWindow*const                       io_parent,
-  gchar const                           i_sales_id[size_pg_big_int])
+  gchar const                           i_sales_id[size_pg_big_int],
+  gchar const*                          i_path)
 {
+  GtkPrintOperationAction               l_action;
   struct print_data*                    l_data;
   GError*                               l_error;
   int                                   l_exit;
@@ -1239,15 +1241,21 @@ sales_print(
   gtk_print_operation_set_unit(l_operation, GTK_UNIT_POINTS);
   gtk_print_operation_set_embed_page_setup(l_operation, TRUE);
 
+  if (i_path && i_path[0])
+  {
+    gtk_print_operation_set_export_filename(l_operation, i_path);
+    l_action= GTK_PRINT_OPERATION_ACTION_EXPORT;
+  }
+  else
+  {
+    l_action= GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG;
+  }
+
   l_settings= gtk_print_settings_new();
 
   gtk_print_operation_set_print_settings(l_operation, l_settings);
 
-  gtk_print_operation_run(
-    l_operation,
-    GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG,
-    io_parent,
-    &l_error);
+  gtk_print_operation_run(l_operation, l_action, io_parent, &l_error);
 
   if (l_error)
   {
@@ -1257,7 +1265,6 @@ sales_print(
 
   g_object_unref(l_operation);
   g_object_unref(l_settings);
-
 
   return l_exit;
 }
