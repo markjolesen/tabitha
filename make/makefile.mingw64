@@ -32,6 +32,8 @@ GMODULE_LIBRARIEs=`pkg-config gmodule-export-2.0 --libs`
 PQ_INCLUDES=`pkg-config libpq --cflags`
 PQ_LIBRARIES=`pkg-config libpq --libs`
 
+SSL_LIBRARIES=`pkg-config openssl --libs`
+
 DECNUMBER_SRC=${SRC}decNumber/
 DECNUMBER_INCLUDES=-I ${DECNUMBER_SRC}
 
@@ -50,10 +52,12 @@ CFLAGS+=\
 
 LDFLAGS+=\
 	-mwindows\
+	-l wsock32\
 	${GTK3_LIBRARIES}\
 	${GLIB2_LIBRARIES}\
 	${GMODULE_LIBRARIES}\
-	${PQ_LIBRARIES}
+	${PQ_LIBRARIES}\
+	${SSL_LIBRARIES}
 
 DEPFLAGS=-MM
 
@@ -68,6 +72,8 @@ TABITHA_OBJECTS=\
 	${OBJ}contact_form.o\
 	${OBJ}contact_index_form.o\
 	${OBJ}edit_form.o\
+	${OBJ}email.o\
+	${OBJ}email_form.o\
 	${OBJ}error.o\
 	${OBJ}format.o\
 	${OBJ}glade.o\
@@ -82,10 +88,12 @@ TABITHA_OBJECTS=\
 	${OBJ}sales.o\
 	${OBJ}sales_detail.o\
 	${OBJ}sales_detail_form.o\
+	${OBJ}sales_email.o\
 	${OBJ}sales_form.o\
 	${OBJ}sales_index_form.o\
 	${OBJ}sales_print.o\
 	${OBJ}session.o\
+	${OBJ}smtp_client.o\
 	${OBJ}trim.o\
 	${OBJ}decContext.o\
 	${OBJ}decNumber.o

@@ -13,6 +13,7 @@
 #include "email.h"
 #include "error.h"
 #include <gmodule.h>
+#include <stdlib.h>
 
 enum
 {
@@ -1160,7 +1161,7 @@ on_sales_detail_delete_button_clicked(
       {
         l_number= strtoul(l_line_number_hidden, 0, 10);
         l_number--;
-        g_snprintf(l_buffer, sizeof(l_buffer), "%lu", l_number);
+        g_snprintf(l_buffer, sizeof(l_buffer), "%lu", (unsigned long)l_number);
         gtk_list_store_set(
           (*l_property).m_liststore,
           &l_iter,
@@ -1170,7 +1171,7 @@ on_sales_detail_delete_button_clicked(
       
       l_number= strtoul(l_line_number, 0, 10);
       l_number--;
-      g_snprintf(l_buffer, sizeof(l_buffer), "%lu", l_number);
+      g_snprintf(l_buffer, sizeof(l_buffer), "%lu", (unsigned long)l_number);
       gtk_list_store_set(
         (*l_property).m_liststore,
         &l_iter,

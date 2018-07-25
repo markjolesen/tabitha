@@ -8,6 +8,7 @@
   United States.
 */
 #include "trim.h"
+#include <stdlib.h>
 
 extern void
 trim_big_int(
@@ -21,7 +22,7 @@ trim_big_int(
 
   if (l_value)
   {
-    g_snprintf(io_number, size_pg_big_int, "%lu", l_value);
+    g_snprintf(io_number, size_pg_big_int, "%lu", (unsigned long)l_value);
   }
 
   return;
@@ -140,11 +141,11 @@ trim_money(
   {
     if (l_digits2)
     {
-      g_snprintf(io_money, size_money, "%lu.%02u", l_digits1, l_digits2);
+      g_snprintf(io_money, size_money, "%lu.%02u", (unsigned long)l_digits1, l_digits2);
     }
     else
     {
-      g_snprintf(io_money, size_money, "%lu", l_digits1);
+      g_snprintf(io_money, size_money, "%lu", (unsigned long)l_digits1);
     }
   }
   else if (l_digits2)

@@ -10,6 +10,7 @@
 #include "sales.h"
 #include "trim.h"
 #include "error.h"
+#include <stdlib.h>
 
 extern void
 sales_detail_trim(
@@ -100,7 +101,7 @@ sales_detail_line_number_reorder(
           " AND"
           " line_number >= %lu;",
           l_escaped_sales_id,
-          l_tuple);
+          (unsigned long)l_tuple);
 
         PQclear(l_result);
         l_result= PQexec((*io_session).m_connection, l_statement);

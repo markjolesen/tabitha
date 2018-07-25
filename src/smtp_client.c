@@ -7,12 +7,16 @@
   and related or neighboring rights to tabitha. This work is published from:
   United States.
 */
+#if !defined(_WIN32)
+#include <sys/select.h>
+#else
+#include <winsock2.h>
+#endif
 #include "smtp_client.h"
 #include "error.h"
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>
-#include <sys/select.h>
 
 enum
 {
@@ -644,28 +648,20 @@ smtp_write(
     else
     {
       l_rc= BIO_should_retry(io_bio);
-
       if (FALSE == l_rc)
       {
         l_rc= ERR_get_error();
-
         if (l_rc)
         {
           l_text= ERR_reason_error_string(l_rc);
+          l_error= g_error_new(
+            smtp_client_error_domain,
+            smtp_client_unable_to_write,
+            "Unable to write to SMTP server: %s",
+            l_text);
+          l_exit= -1;
+          break;
         }
-        else
-        {
-          l_text= "timeout";
-        }
-
-        l_error= g_error_new(
-          smtp_client_error_domain,
-          smtp_client_unable_to_write,
-          "Unable to write to SMTP server: %s",
-          l_text);
-
-        l_exit= -1;
-        break;
       }
     }
 
@@ -761,28 +757,20 @@ smtp_read_line(
       else
       {
         l_rc= BIO_should_retry(io_bio);
-
         if (FALSE == l_rc)
         {
           l_rc= ERR_get_error();
-
           if (l_rc)
           {
             l_text= ERR_reason_error_string(l_rc);
+            l_error= g_error_new(
+              smtp_client_error_domain,
+              smtp_client_unable_to_read,
+              "Unable to read from SMTP server: %s",
+              l_text);
+            l_exit= -1;
+            break;
           }
-          else
-          {
-            l_text= "timeout";
-          }
-
-          l_error= g_error_new(
-            smtp_client_error_domain,
-            smtp_client_unable_to_read,
-            "Unable to read from SMTP server: %s",
-            l_text);
-
-          l_exit= -1;
-          break;
         }
       }
 
@@ -884,24 +872,18 @@ smtp_connect(
     if (FALSE == l_rc)
     {
       l_rc= ERR_get_error();
-
       if (l_rc)
       {
         l_text= ERR_reason_error_string(l_rc);
-      }
-      else
-      {
-        l_text= "timeout";
-      }
+        l_error= g_error_new(
+          smtp_client_error_domain,
+          smtp_client_unable_to_connect,
+          "Unable to connect to SMTP server: %s",
+          l_text);
 
-      l_error= g_error_new(
-        smtp_client_error_domain,
-        smtp_client_unable_to_connect,
-        "Unable to connect to SMTP server: %s",
-        l_text);
-
-      l_exit= -1;
-      break;
+        l_exit= -1;
+        break;
+      }
     }
 
   }while(1);
@@ -1540,7 +1522,9 @@ smtp_client_send(
     l_bio= BIO_new_ssl_connect(l_ctx);
     BIO_set_conn_hostname(l_bio, (*l_priv).m_server);
     BIO_set_conn_port(l_bio, (*l_priv).m_port);
+#if !defined(_WIN32)
     BIO_set_conn_ip_family(l_bio, BIO_FAMILY_IPV4);
+#endif
     BIO_set_nbio(l_bio, 1);
     BIO_get_ssl(l_bio, &l_ssl);
     SSL_set_mode(l_ssl, SSL_MODE_AUTO_RETRY);

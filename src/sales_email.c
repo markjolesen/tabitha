@@ -138,9 +138,9 @@ sales_email_run(
   gchar*                                l_head;
   SmtpClient*                           l_smtp;
   gchar*                                l_tail;
-  gchar*                                l_to;
+  GString*                              l_buffer;
 
-  l_to= 0;
+  l_buffer= g_string_sized_new(1024);
   l_data= (struct sales_email_thread_data*)i_data;
   l_error= 0;
   l_exit= 0;
@@ -180,8 +180,9 @@ sales_email_run(
       "application/pdf",
       (*l_data).m_basename);
 
-    l_to= g_strdup((*l_data).m_email->m_to);
-    l_head= l_to;
+
+    g_string_assign(l_buffer, (*l_data).m_email->m_to);
+    l_head= (*l_buffer).str;
 
     do
     {
@@ -212,11 +213,17 @@ sales_email_run(
 
   if (l_error)
   {
-    _error_display((*l_data).m_parent, l_error);
+    g_string_printf(
+      l_buffer,
+      "[%d.%d] %s",
+      (*l_error).domain,
+      (*l_error).code,
+      (*l_error).message);
+    gtk_text_buffer_insert_at_cursor((*l_data).m_textbuffer, (*l_buffer).str, (*l_buffer).len);
     g_clear_error(&l_error);
   }
 
-  g_free(l_to);
+  g_string_free(l_buffer, TRUE);
   g_object_unref(l_smtp);
 
   g_thread_exit((gpointer)(ptrdiff_t)l_exit);
