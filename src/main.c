@@ -67,9 +67,11 @@ int main(
 {
   int                                   l_exit;
   GError*                               l_error;
+  GtkSettings*                          l_settings;
 
   l_exit= -1;
   l_error= 0;
+
   aspect_set_defaults(&g_aspect);
   session_assign(&g_session);
 
@@ -77,6 +79,10 @@ int main(
   {
 
     gtk_init(&argc, &argv); /* on error aborts */
+
+    l_settings= gtk_settings_get_default();
+    g_object_set(l_settings, "gtk-button-images", TRUE, 0);
+    g_object_unref(l_settings);
 
     l_exit= glade_init(&l_error, argc, argv);
 
