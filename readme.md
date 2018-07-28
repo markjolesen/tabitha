@@ -1,5 +1,5 @@
 
-![tabitha](https://github.com/markjolesen/tabitha/tree/master/image/logo/tabitha-64x64.png)
+![tabitha](/image/logo/tabitha-64x64.png)
 
 # tabitha
 
