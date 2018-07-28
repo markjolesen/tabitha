@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="75.14167mm"
+   height="75.14167mm"
+   viewBox="0 0 75.14167 75.14167"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.2 2405546, 2018-03-11"
+   sodipodi:docname="tabitha.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2"
+     inkscape:cx="28.006511"
+     inkscape:cy="96.285746"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer2"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1030"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2"
+     style="display:inline">
+    <rect
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.04285216;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect943"
+       width="33.072914"
+       height="32.543747"
+       x="42.33334"
+       y="-1.3249262e-07" />
+    <rect
+       style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.04285216;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect943-8"
+       width="33.072914"
+       height="32.543747"
+       x="-9.1393787e-08"
+       y="-2.1060308e-07" />
+    <rect
+       transform="translate(-56.923215,-99.167267)"
+       style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.04285216;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect943-1"
+       width="33.072914"
+       height="32.543747"
+       x="56.923214"
+       y="141.7652" />
+    <rect
+       transform="translate(-56.923215,-99.167267)"
+       style="display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.04285216;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect943-2"
+       width="33.072914"
+       height="32.543747"
+       x="98.991974"
+       y="141.7652" />
+  </g>
+</svg>

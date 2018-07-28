@@ -17,6 +17,7 @@
     </columns>
   </object>
   <object class="GtkDialog" id="dialog_receipt">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Receipts</property>
     <property name="type_hint">dialog</property>
@@ -285,6 +286,8 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="dialog_status">
+    <property name="width_request">480</property>
+    <property name="height_request">400</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Status</property>
     <property name="type_hint">dialog</property>
@@ -374,6 +377,7 @@
     <property name="page_increment">10</property>
   </object>
   <object class="GtkDialog" id="dialog_company">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Company</property>
     <property name="type_hint">dialog</property>
@@ -854,6 +858,8 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="dialog_email">
+    <property name="width_request">480</property>
+    <property name="height_request">400</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">E-mail</property>
     <property name="type_hint">dialog</property>
@@ -1195,6 +1201,7 @@
     </columns>
   </object>
   <object class="GtkDialog" id="dialog_sales">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="type_hint">dialog</property>
     <child>
@@ -2065,6 +2072,8 @@
     </columns>
   </object>
   <object class="GtkApplicationWindow" id="window_main">
+    <property name="width_request">480</property>
+    <property name="height_request">400</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Tabitha</property>
     <signal name="destroy" handler="on_window_main_destroy" swapped="no"/>
@@ -2073,8 +2082,8 @@
     </child>
     <child>
       <object class="GtkBox" id="main_box">
-        <property name="width_request">400</property>
-        <property name="height_request">400</property>
+        <property name="width_request">-1</property>
+        <property name="height_request">-1</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
@@ -2190,6 +2199,7 @@
     </child>
   </object>
   <object class="GtkDialog" id="dialog_aspect">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -2318,6 +2328,7 @@
                 <property name="visible">True</property>
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="editable">False</property>
                 <property name="text" translatable="yes">tabitha</property>
               </object>
@@ -2482,6 +2493,7 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="dialog_contact">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Contacts</property>
     <property name="modal">True</property>
@@ -3386,6 +3398,8 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="dialog_edit">
+    <property name="width_request">480</property>
+    <property name="height_request">400</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Editor</property>
     <property name="type_hint">dialog</property>
@@ -3446,8 +3460,6 @@
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkScrolledWindow" id="edit_scrolledwindow">
-                <property name="width_request">600</property>
-                <property name="height_request">400</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="hexpand">True</property>
@@ -3483,6 +3495,7 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="dialog_product">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Product</property>
     <property name="type_hint">dialog</property>
@@ -4262,6 +4275,7 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="dialog_sales_detail">
+    <property name="width_request">480</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Sales Detail</property>
     <property name="type_hint">dialog</property>
@@ -4365,6 +4379,7 @@
               <object class="GtkEntry" id="sales_detail_product_id">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="hexpand">True</property>
                 <property name="max_length">19</property>
                 <signal name="focus-out-event" handler="on_sales_detail_product_id_focus_out_event" object="dialog_sales_detail" swapped="no"/>
               </object>

@@ -8,8 +8,9 @@
   United States.
 */
 #include "company.h"
-#include "trim.h"
 #include "error.h"
+#include "password.h"
+#include "trim.h"
 
 extern void
 company_trim(
@@ -44,6 +45,7 @@ company_update(
 {
   GError*                               l_error;
   int                                   l_exit;
+  gchar*                                l_password;
   PGresult*                             l_result;
   gchar*                                l_statement;
   ExecStatusType                        l_status;
@@ -51,6 +53,7 @@ company_update(
 
   l_error= 0;
   l_exit= 0;
+  l_password= password_encrypt(io_session, (*i_company).m_smtp_password);
   l_result= 0;
 
   l_values[0]= __nullify(&(*i_company).m_company_name[0]);
@@ -67,7 +70,7 @@ company_update(
   l_values[11]= __nullify(&(*i_company).m_website[0]);
   l_values[12]= __nullify(&(*i_company).m_smtp_server[0]);
   l_values[13]= __nullify(&(*i_company).m_smtp_username[0]);
-  l_values[14]= __nullify(&(*i_company).m_smtp_password[0]);
+  l_values[14]= __nullify(l_password);
   l_values[15]= __nullify(&(*i_company).m_smtp_port[0]);
 
   l_statement= g_malloc0(1024);
@@ -117,8 +120,8 @@ company_update(
     l_exit= -1;
   }
 
+  g_free(l_password);
   g_free(l_statement);
-
   PQclear(l_result);
 
   if (l_error)
@@ -137,6 +140,7 @@ company_fetch(
 {
   GError*                               l_error;
   int                                   l_exit;
+  gchar*                                l_password;
   PGresult*                             l_result;
   gchar*                                l_statement;
   ExecStatusType                        l_status;
@@ -246,7 +250,9 @@ company_fetch(
     g_strlcpy((*o_company).m_smtp_username, l_text, sizeof((*o_company).m_smtp_username));
 
     l_text= PQgetvalue(l_result, 0, 14);
-    g_strlcpy((*o_company).m_smtp_password, l_text, sizeof((*o_company).m_smtp_password));
+    l_password= password_decrypt(io_session, l_text);
+    g_strlcpy((*o_company).m_smtp_password, l_password, sizeof((*o_company).m_smtp_password));
+    g_free(l_password);
 
     l_text= PQgetvalue(l_result, 0, 15);
     g_strlcpy((*o_company).m_smtp_port, l_text, sizeof((*o_company).m_smtp_port));

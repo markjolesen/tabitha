@@ -89,6 +89,8 @@ int main(
     g_object_set_data(G_OBJECT(g_window_main), "builder", g_builder);
     g_object_set_data(G_OBJECT(g_window_main), "session", &g_session);
 
+    gtk_window_set_icon_from_file(g_window_main, "tabitha-48x48.png", 0);
+
     gtk_widget_show(GTK_WIDGET(g_window_main));
 
     l_exit= connect(&g_session, &g_aspect, GTK_WINDOW(g_window_main), g_builder);

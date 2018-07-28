@@ -18,6 +18,8 @@ CREATE ROLE tabitha LOGIN WITH PASSWORD 'tabitha';
 
 \c tabitha
 
+CREATE EXTENSION pgcrypto IF NOT EXISTS;
+
 CREATE TYPE SALESTYPE AS ENUM ('Estimate', 'Invoice');
 CREATE TYPE CONTACTTYPE AS ENUM ('Residential', 'Commercial', 'Vendor');
 
@@ -38,7 +40,7 @@ CREATE TABLE company
 	website VARCHAR(41),
 	smtp_server VARCHAR(41),
 	smtp_username VARCHAR(41),
-	smtp_password VARChAR(41),
+	smtp_password TEXT,
 	smtp_port SMALLINT,
 	CONSTRAINT check_id_singlerow CHECK (company_id = 0)
 );

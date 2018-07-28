@@ -54,6 +54,7 @@ add_executable(tabitha
 	src/glade.c
 	src/main.c
 	src/menu.c
+	src/password.c
 	src/product.c
 	src/product_form.c
 	src/product_index_form.c

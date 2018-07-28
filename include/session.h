@@ -12,6 +12,7 @@
 #include <libpq-fe.h>
 #include <gtk/gtk.h>
 #include <glib.h>
+#include <glib/gi18n.h>
 #include "aspect.h"
 
 #define __nullify(s) ((s) ? ((s)[0] ? (s) : 0) : 0)
