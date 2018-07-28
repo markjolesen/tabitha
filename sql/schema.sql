@@ -18,7 +18,7 @@ CREATE ROLE tabitha LOGIN WITH PASSWORD 'tabitha';
 
 \c tabitha
 
-CREATE EXTENSION pgcrypto IF NOT EXISTS;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TYPE SALESTYPE AS ENUM ('Estimate', 'Invoice');
 CREATE TYPE CONTACTTYPE AS ENUM ('Residential', 'Commercial', 'Vendor');
