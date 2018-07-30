@@ -79,6 +79,7 @@ TABITHA_OBJECTS=\
 	${OBJ}glade.o\
 	${OBJ}main.o\
 	${OBJ}menu.o\
+	${OBJ}password.o\
 	${OBJ}product.o\
 	${OBJ}product_form.o\
 	${OBJ}product_index_form.o\
@@ -94,7 +95,9 @@ TABITHA_OBJECTS=\
 	${OBJ}sales_print.o\
 	${OBJ}session.o\
 	${OBJ}smtp_client.o\
+	${OBJ}tabitha.o\
 	${OBJ}trim.o\
+	${OBJ}version.o\
 	${OBJ}decContext.o\
 	${OBJ}decNumber.o
 
@@ -106,6 +109,9 @@ all : ${OBJ} ${BIN} ${BIN}tabitha${BIN_SUFFIX}
 
 ${BIN}tabitha${BIN_SUFFIX} : ${TABITHA_OBJECTS}
 	${CC} -o $@ ${TABITHA_OBJECTS} ${LDFLAGS}
+
+${OBJ}tabitha.o : ${SRC}/tabitha.rc
+	windres $? -O coff -o $@
 
 ${OBJ} : 
 	test -d $@ || mkdir $@

@@ -10,6 +10,7 @@ DLL=/mingw64/bin
 TOP=../..
 BIN=bin
 LIB=lib
+SQL=sql
 SHARE=share
 
 PIXBUF_TOP=/mingw64/lib/gdk-pixbuf-2.0/2.10.0/
@@ -57,12 +58,13 @@ DEPDLL=\
 	${BIN}/zlib1.dll
 
 .PHONY: all
-all : createdirs dll dllpixbuf share bin 
+all : createdirs dll dllpixbuf share bin sql
 
 .PHONY: createdirs
 createdirs :
 	@test -d ${BIN} || mkdir -p ${BIN}
 	@test -d ${LIB} || mkdir -p ${LIB}
+	@test -d ${SQL} || mkdir -p ${SQL}
 	@test -d ${SHARE}/icons || mkdir -p ${SHARE}/icons
 	@test -d ${PIXBUF}/loaders || mkdir -p ${PIXBUF}/loaders
 
@@ -70,8 +72,14 @@ createdirs :
 share :
 	@rsync -r /mingw64/share/icons ${SHARE}
 
+.PHONY: sql
+sql : ${SQL}/schema.sql
+
+${SQL}/schema.sql : ${TOP}/sql/schema.sql
+	install -m 0644 $? $@
+
 .PHONY: bin
-bin : ${BIN}/tabitha.exe ${GLADE}
+bin : ${BIN}/tabitha.exe ${GLADE} ${BIN}/tabitha-48x48.png
 
 ${BIN}/tabitha.exe : ${TOP}/bin/tabitha.exe
 	strip $?
@@ -81,6 +89,9 @@ ${BIN}/tabitha.glade : ${TOP}/glade/tabitha.glade
 	install -m 0644 $? $@
 
 ${BIN}/readme.glade : ${TOP}/glade/readme.glade
+	install -m 0644 $? $@
+
+${BIN}/tabitha-48x48.png : ${TOP}/image/logo/tabitha-48x48.png
 	install -m 0644 $? $@
 
 .PHONY: dllpixbuf

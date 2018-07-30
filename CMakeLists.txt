@@ -71,6 +71,7 @@ add_executable(tabitha
 	src/session.c
 	src/smtp_client.c
 	src/trim.c
+	src/version.c
 	src/decNumber/decContext.c
 	src/decNumber/decNumber.c)
 

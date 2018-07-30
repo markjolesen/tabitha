@@ -11,6 +11,7 @@
 #include "error.h"
 #include "aspect.h"
 #include "session.h"
+#include "version.h"
 
 GtkApplicationWindow*                   g_window_main= 0;
 struct aspect                           g_aspect;
@@ -61,6 +62,20 @@ connect(
   return l_exit;
 }
 
+static void
+set_title(
+  GtkWindow*const                       io_window)
+{
+  char const*                           l_version;
+  char                                  l_title[64];
+
+  l_version= version_get_string();
+  snprintf(l_title, sizeof(l_title), "tabitha (%s)", l_version);
+  gtk_window_set_title(io_window, l_title);
+
+  return;
+}
+
 int main(
   int                                   argc,
   char*                                 argv[])
@@ -81,7 +96,7 @@ int main(
     gtk_init(&argc, &argv); /* on error aborts */
 
     l_settings= gtk_settings_get_default();
-    g_object_set(l_settings, "gtk-button-images", TRUE, 0);
+    g_object_set(l_settings, "gtk-button-images", TRUE, NULL);
     g_object_unref(l_settings);
 
     l_exit= glade_init(&l_error, argc, argv);
@@ -95,7 +110,9 @@ int main(
     g_object_set_data(G_OBJECT(g_window_main), "builder", g_builder);
     g_object_set_data(G_OBJECT(g_window_main), "session", &g_session);
 
-    gtk_window_set_icon_from_file(g_window_main, "tabitha-48x48.png", 0);
+    set_title(g_window_main);
+
+    gtk_window_set_icon_from_file(GTK_WINDOW(g_window_main), "tabitha-48x48.png", 0);
 
     gtk_widget_show(GTK_WIDGET(g_window_main));
 
