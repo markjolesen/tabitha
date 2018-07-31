@@ -16,6 +16,7 @@
 GtkApplicationWindow*                   g_window_main= 0;
 struct aspect                           g_aspect;
 struct session                          g_session;
+static gchar const*                     g_icon_filename= "tabitha-48x48.png";
 
 G_MODULE_EXPORT void
 on_window_main_destroy(
@@ -61,6 +62,77 @@ connect(
 
   return l_exit;
 }
+
+#if defined(_WIN32)
+#define set_icon(w)
+#else
+static void
+set_icon(
+  GtkWindow*const                       io_window)
+{
+  gchar*                                l_path;
+  gint                                  l_rc;
+  char const*const*                     l_env;
+  size_t                                l_slot;
+
+  do
+  {
+
+    l_path= g_build_filename(g_module_basedir, g_icon_filename, 0);
+
+    l_rc= g_file_test(g_glade_path, G_FILE_TEST_IS_REGULAR);
+
+    if (l_rc)
+    {
+      break;
+    }
+
+    g_free(l_path);
+    l_path= 0;
+
+    l_env= g_get_system_data_dirs();
+    l_slot= 0;
+
+    do
+    {
+
+      if (0 == l_env[l_slot])
+      {
+        break;
+      }
+
+      l_path= g_build_filename(
+        l_env[l_slot],
+        "tabitha",
+        "image",
+        g_icon_filename,
+        (char*)0);
+
+      l_rc= g_file_test(l_path, G_FILE_TEST_IS_REGULAR);
+
+      if (l_rc)
+      {
+        break;
+      }
+
+      g_free(l_path);
+      l_path= 0;
+
+      l_slot++;
+
+    }while(1);
+
+  }while(0);
+
+  if (l_path)
+  {
+    gtk_window_set_icon_from_file(io_window, l_path, 0);
+    g_free(l_path);
+  }
+
+  return;
+}
+#endif
 
 static void
 set_title(
@@ -110,9 +182,8 @@ int main(
     g_object_set_data(G_OBJECT(g_window_main), "builder", g_builder);
     g_object_set_data(G_OBJECT(g_window_main), "session", &g_session);
 
-    set_title(g_window_main);
-
-    gtk_window_set_icon_from_file(GTK_WINDOW(g_window_main), "tabitha-48x48.png", 0);
+    set_title(GTK_WINDOW(g_window_main));
+    set_icon(GTK_WINDOW(g_window_main));
 
     gtk_widget_show(GTK_WIDGET(g_window_main));
 

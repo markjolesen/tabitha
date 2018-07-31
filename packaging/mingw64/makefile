@@ -8,10 +8,11 @@
 
 DLL=/mingw64/bin
 TOP=../..
-BIN=bin
-LIB=lib
-SQL=sql
-SHARE=share
+ROOT=root
+BIN=${ROOT}/bin
+LIB=${ROOT}/lib
+SQL=${ROOT}/sql
+SHARE=${ROOT}/share
 
 PIXBUF_TOP=/mingw64/lib/gdk-pixbuf-2.0/2.10.0/
 PIXBUF=${LIB}/gdk-pixbuf-2.0/2.10.0
@@ -79,7 +80,7 @@ ${SQL}/schema.sql : ${TOP}/sql/schema.sql
 	install -m 0644 $? $@
 
 .PHONY: bin
-bin : ${BIN}/tabitha.exe ${GLADE} ${BIN}/tabitha-48x48.png
+bin : ${BIN}/tabitha.exe ${GLADE} 
 
 ${BIN}/tabitha.exe : ${TOP}/bin/tabitha.exe
 	strip $?
@@ -89,9 +90,6 @@ ${BIN}/tabitha.glade : ${TOP}/glade/tabitha.glade
 	install -m 0644 $? $@
 
 ${BIN}/readme.glade : ${TOP}/glade/readme.glade
-	install -m 0644 $? $@
-
-${BIN}/tabitha-48x48.png : ${TOP}/image/logo/tabitha-48x48.png
 	install -m 0644 $? $@
 
 .PHONY: dllpixbuf

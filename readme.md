@@ -11,12 +11,12 @@ sector such as HVAC.  It is Public Domain software.
 BSD flavors, GNU/Linux, and Windows 64-bit Operating Systems.
 
 In a nutshell, any Operating System environment GTK-+3.0 and PostgreSQL is
-available, tabitha will run.
+available tabitha will run.
 
 # Dependencies
 
 Following are the primary dependencies. Each module may have additional
-dependencies, however.
+requirements, however.
 
 | STATIC | MOUDLE        | LICENSE      | URI                                           |
 |:------:|---------------|--------------|-----------------------------------------------|
