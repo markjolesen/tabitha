@@ -23,7 +23,6 @@ a sane state.
 
 * Download and install PostgreSQL
 * Download and install tabitha
-* Initialize PostgreSQL database
 * Load tabitha schema
 
 ## PostgreSQL
@@ -54,29 +53,69 @@ your mouse click on the 10.4 version by the Windows icon. Follow
 the instructions to 'Save' the file to disk. Browsers will
 typically save the file into your users Downloads directory. 
 
-After downloading, using a login with adminstrative rights,
-browse to the directory and execute it.
+After downloading, using a login with adminstrative rights, browse to
+the directory and execute it.
 
-![PostgreSQl screen 1](/doc/install/windows/pginstall1.png)
+Accepting the default install options throughout most of the screens
+should be sufficent.
 
-Accepting the default install options throughout the screens should
-be sufficent. 
+### Screen 1
+
+Press the next buttton to begin installation
 
 ![PostgreSQl install screen 1](/doc/install/windows/pginstall1.png)
 
+### Screen 2
+
+Choose the install directory. Accepting the default is recommended.
+
 ![PostgreSQl install screen 2](/doc/install/windows/pginstall2.png)
+
+### Screen 3
+
+Choose the components you would like to install. PostgreSQL Server and
+Command Line Tools must be checked. Selecting them all (th default)
+is recommended.
 
 ![PostgreSQl install screen 3](/doc/install/windows/pginstall3.png)
 
+### Screen 4
+
+Choose database data location. Accepting the default is recommended.
+
 ![PostgreSQl install screen 4](/doc/install/windows/pginstall4.png)
+
+### Screen 5
+
+Enter the password for PostgreSQL server. This password is for the
+supeuser 'postgres.'
 
 ![PostgreSQl install screen 5](/doc/install/windows/pginstall5.png)
 
+### Screen 6
+
+Enter the port PostgreSQL server will communicate through. The default
+port is recommended.
+
 ![PostgreSQl install screen 6](/doc/install/windows/pginstall6.png)
+
+### Screen 7
+
+Select the locale. 
 
 ![PostgreSQl install screen 7](/doc/install/windows/pginstall7.png)
 
+### Screen 8
+
+Before committing, review the installation options. If there is an issue,
+hit the back button until you get to the screen which will allow you
+to correct it.
+
 ![PostgreSQl install screen 8](/doc/install/windows/pginstall8.png)
+
+### Screen 9
+
+Finished screen.
 
 ![PostgreSQl install screen 9](/doc/install/windows/pginstall9.png)
 
@@ -93,9 +132,23 @@ installed in a root directory. That folder can be deleted to remove
 the software. However, it is recommened to use WIndows Control Panel to
 remove the application.
 
+### Screen 1
+
+Choose the install directory. Accepting the default is recommended.
+
 ![tabitha install screen 1](/doc/install/windows/tabithainstall1.png)
 
+### Screen 2
+
+If you want a desktop icon, check Create a desktop shortcut checkbox.
+
 ![tabitha install screen 2](/doc/install/windows/tabithainstall2.png)
+
+### Screen 3
+
+Before committing, review the installation options. If there is an issue,
+hit the back button until you get to the screen which will allow you
+to correct it.
 
 ![tabitha install screen 3](/doc/install/windows/tabithainstall3.png)
 
