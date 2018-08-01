@@ -45,7 +45,7 @@ Download page: [https://www.postgresql.org/download/windows/](https://www.postgr
 
 It is recommened to install the bundle supplied from BigSQL.
 
-![BIGSQL](/docinstall/bigsql.png)
+![BIGSQL](/doc/install/windows/bigsql.png)
 
 Download page: [https://www.openscg.com/bigsql/postgresql/installers.jsp/](https://www.openscg.com/bigsql/postgresql/installers.jsp/)
 
@@ -57,46 +57,47 @@ typically save the file into your users Downloads directory.
 After downloading, using a login with adminstrative rights,
 browse to the directory and execute it.
 
-![PostgreSQl screen 1](/docinstall/pginstall1.png)
+![PostgreSQl screen 1](/doc/install/windows/pginstall1.png)
 
 Accepting the default install options throughout the screens should
 be sufficent. 
 
-![PostgreSQl install screen 1](/docinstall/pginstall1.png)
+![PostgreSQl install screen 1](/doc/install/windows/pginstall1.png)
 
-![PostgreSQl install screen 2](/docinstall/pginstall2.png)
+![PostgreSQl install screen 2](/doc/install/windows/pginstall2.png)
 
-![PostgreSQl install screen 3](/docinstall/pginstall3.png)
+![PostgreSQl install screen 3](/doc/install/windows/pginstall3.png)
 
-![PostgreSQl install screen 4](/docinstall/pginstall4.png)
+![PostgreSQl install screen 4](/doc/install/windows/pginstall4.png)
 
-![PostgreSQl install screen 5](/docinstall/pginstall5.png)
+![PostgreSQl install screen 5](/doc/install/windows/pginstall5.png)
 
-![PostgreSQl install screen 6](/docinstall/pginstall6.png)
+![PostgreSQl install screen 6](/doc/install/windows/pginstall6.png)
 
-![PostgreSQl install screen 7](/docinstall/pginstall7.png)
+![PostgreSQl install screen 7](/doc/install/windows/pginstall7.png)
 
-![PostgreSQl install screen 8](/docinstall/pginstall8.png)
+![PostgreSQl install screen 8](/doc/install/windows/pginstall8.png)
 
-![PostgreSQl install screen 9](/docinstall/pginstall9.png)
+![PostgreSQl install screen 9](/doc/install/windows/pginstall9.png)
 
 ## tabitha
 
-tabitha for Windows comes with a prepackeged self installer.  After
-downloading the package, start the installer and it will guide you
-through the process.
+tabitha for Windows comes with a prepackeged self installer.
+After downloading the package, unzip it, and then start the installer
+executable.  It will guide you through the process.
 
+Zip Download: [https://github.com/markjolesen/tabitha/files/2245146/tabitha.zip](https://github.com/markjolesen/tabitha/files/2245146/tabitha.zip)
 
 tabitha does not make use of the system registry. All files are
 installed in a root directory. That folder can be deleted to remove
 the software. However, it is recommened to use WIndows Control Panel to
 remove the application.
 
-![tabitha install screen 1](/docinstall/tabithainstall1.png)
+![tabitha install screen 1](/doc/install/windows/tabithainstall1.png)
 
-![tabitha install screen 2](/docinstall/tabithainstall2.png)
+![tabitha install screen 2](/doc/install/windows/tabithainstall2.png)
 
-![tabitha install screen 3](/docinstall/tabithainstall3.png)
+![tabitha install screen 3](/doc/install/windows/tabithainstall3.png)
 
 ## Post Install
 
@@ -107,11 +108,11 @@ shell.
 Open a shell by entering 'cmd' in Cortana search bar, and then clicking on
 'Command Prompt.'
 
-![Cortana](/docinstall/cortana.png)
+![Cortana](/doc/install/windows/cortana.png)
 
 This will open a shell like the one shown below.
 
-![cmd screen 1](/docinstall/cmd1.png)
+![cmd screen 1](/doc/install/windows/cmd1.png)
 
 Type the following commands:
 
