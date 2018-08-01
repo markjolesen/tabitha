@@ -14,6 +14,7 @@
 #endif
 #include "smtp_client.h"
 #include "error.h"
+#include <string.h>
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 #include <openssl/err.h>

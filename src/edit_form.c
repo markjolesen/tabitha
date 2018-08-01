@@ -10,6 +10,7 @@
 #include "edit.h"
 #include "error.h"
 #include <gmodule.h>
+#include <string.h>
 
 struct property
 {

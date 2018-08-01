@@ -9,6 +9,7 @@
 */
 #include "aspect.h"
 #include "error.h"
+#include <string.h>
 
 struct property
 {

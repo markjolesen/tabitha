@@ -8,6 +8,7 @@
   United States.
 */
 #include "calendar.h"
+#include <string.h>
 
 extern gchar*
 calendar_format(

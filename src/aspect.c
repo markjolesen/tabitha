@@ -8,6 +8,7 @@
   United States.
 */
 #include "aspect.h"
+#include <string.h>
 
 extern void
 aspect_set_defaults(
