@@ -37,7 +37,7 @@ Following install PostgreSQL, client and libraries.
 apt-get install postgresql postgresql-client libpq5
 ```
 
-[Terminal 1](/doc/install/debian/doc/install/debian/terminal1.png)
+[Terminal 1](/doc/install/debian/terminal1.png)
 
 The next thing to do is to set password for user postgres.
 
@@ -49,12 +49,12 @@ postgres=# \password postgres
 exit
 ```
 
-[Terminal 2](/doc/install/debian/doc/install/debian/terminal2.png)
+[Terminal 2](/doc/install/debian/terminal2.png)
 
 Afterwards, set authentication for user postgres to md5.
 
 ```
-nano /etc/postgresql/9.6/main/pg\_hba.conf
+nano /etc/postgresql/9.6/main/pg_hba.conf
 ```
 
 At the time of this writing PostgreSQL version is 9.6. If you have a 
@@ -84,7 +84,7 @@ release from here:
 After downloading, as root user install the package
 
 ```
-dpkg -i tabitha\_1.0-1-amd64.deb
+dpkg -i tabitha_1.0-1-amd64.deb
 ```
 
 The final step is to load tabitha database schema into PostgreSQL. To do this
