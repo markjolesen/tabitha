@@ -6,7 +6,7 @@
 # and related or neighboring rights to tabitha. This work is published from:
 # United States.
 
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.7)
 
 project(tabitha)
 
@@ -80,6 +80,7 @@ target_link_libraries(tabitha
 	${GLIB2_LIBRARIES}
 	${GMODULE_LIBRARIES}
 	${PSQL_LIBRARIES}
+	m
 	ssl
 	crypto)
 

@@ -80,7 +80,7 @@ set_icon(
 
     l_path= g_build_filename(g_module_basedir, g_icon_filename, NULL);
 
-    l_rc= g_file_test(g_glade_path, G_FILE_TEST_IS_REGULAR);
+    l_rc= g_file_test(l_path, G_FILE_TEST_IS_REGULAR);
 
     if (l_rc)
     {
