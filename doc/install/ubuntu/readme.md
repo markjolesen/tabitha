@@ -75,6 +75,21 @@ issue the following command.
 ```
 sudo su - postgres
 psql -f /usr/share/tabitha/sql/schema.sql
+exit
 ```
+
+Upgrading from PostgreSQL server to another requires a backup and restore 
+of the databases. It is recommended that automatic updates are blocked.
+To do this, as root, set the PostgreSQL package to hold.
+
+
+```
+apt-mark hold postgresql 
+```
+
+
+
+
+
 
 

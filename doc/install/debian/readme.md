@@ -51,7 +51,7 @@ exit
 
 ![Terminal 2](/doc/install/debian/terminal2.png)
 
-Afterwards, set authentication for user postgres to md5.
+Afterwards, set the authentication method for user postgres to md5.
 
 ```
 nano /etc/postgresql/9.6/main/pg_hba.conf
@@ -93,4 +93,15 @@ issue the following command.
 ```
 su - postgres
 psql -f /usr/share/tabitha/sql/schema.sql
+exit
 ```
+
+Upgrading from PostgreSQL server to another requires a backup and restore 
+of the databases. It is recommended that automatic updates are blocked.
+To do this, as root, set the PostgreSQL package to hold.
+
+
+```
+sudo apt-mark hold postgresql 
+```
+
