@@ -1523,9 +1523,11 @@ smtp_client_send(
     l_bio= BIO_new_ssl_connect(l_ctx);
     BIO_set_conn_hostname(l_bio, (*l_priv).m_server);
     BIO_set_conn_port(l_bio, (*l_priv).m_port);
+/*
 #if !defined(_WIN32)
     BIO_set_conn_ip_family(l_bio, BIO_FAMILY_IPV4);
 #endif
+*/
     BIO_set_nbio(l_bio, 1);
     BIO_get_ssl(l_bio, &l_ssl);
     SSL_set_mode(l_ssl, SSL_MODE_AUTO_RETRY);

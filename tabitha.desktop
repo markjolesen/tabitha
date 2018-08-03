@@ -1,0 +1,18 @@
+/*
+  tabitha.desktop
+
+  License CC0 PUBLIC DOMAIN
+
+  To the extent possible under law, Mark J. Olesen has waived all copyright
+  and related or neighboring rights to tabitha. This work is published from:
+  United States.
+*/
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=tabitha
+Comment=Basic invocing
+Exec=tabitha
+Icon=tabitha-48x48.png
+Terminal=false
+Categories=Accounting

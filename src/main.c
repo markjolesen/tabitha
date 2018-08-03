@@ -104,7 +104,6 @@ set_icon(
       l_path= g_build_filename(
         l_env[l_slot],
         "tabitha",
-        "image",
         g_icon_filename,
         (char*)0);
 

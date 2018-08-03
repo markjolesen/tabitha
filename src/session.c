@@ -64,6 +64,7 @@ session_connect(
   ConnStatusType                        l_status;
   char const*                           l_values[PARMS];
 
+  l_error= 0;
   l_exit= 0;
 
   do

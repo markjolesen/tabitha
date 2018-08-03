@@ -251,8 +251,12 @@ company_fetch(
 
     l_text= PQgetvalue(l_result, 0, 14);
     l_password= password_decrypt(io_session, l_text);
-    g_strlcpy((*o_company).m_smtp_password, l_password, sizeof((*o_company).m_smtp_password));
-    g_free(l_password);
+
+    if (l_password)
+    {
+      g_strlcpy((*o_company).m_smtp_password, l_password, sizeof((*o_company).m_smtp_password));
+      g_free(l_password);
+    }
 
     l_text= PQgetvalue(l_result, 0, 15);
     g_strlcpy((*o_company).m_smtp_port, l_text, sizeof((*o_company).m_smtp_port));

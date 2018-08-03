@@ -6,14 +6,11 @@
 # and related or neighboring rights to tabitha. This work is published from:
 # United States.
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.0)
 
 project(tabitha)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -rdynamic -pedantic -Wall -Wextra")
-
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/glade/tabitha.glade
-     DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 find_package(PkgConfig REQUIRED)
 
@@ -21,6 +18,7 @@ pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 pkg_check_modules(GMODULE REQUIRED gmodule-export-2.0)
 pkg_check_modules(PSQL REQUIRED libpq)
+pkg_check_modules(OPENSSL REQUIRED openssl)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/src/decNumber)
@@ -76,11 +74,22 @@ add_executable(tabitha
 	src/decNumber/decNumber.c)
 
 target_link_libraries(tabitha
+	m
 	${GTK3_LIBRARIES}
 	${GLIB2_LIBRARIES}
 	${GMODULE_LIBRARIES}
 	${PSQL_LIBRARIES}
-	m
-	ssl
-	crypto)
+	${OPENSSL_LIBRARIES}
+	)
+
+install(TARGETS tabitha DESTINATION bin)
+
+install(FILES ${CMAKE_SOURCE_DIR}/tabitha.desktop
+        DESTINATION share/applications/)
+
+install(FILES ${CMAKE_SOURCE_DIR}/glade/tabitha.glade
+        DESTINATION share/tabitha/ui/)
+
+install(FILES ${CMAKE_SOURCE_DIR}/image/logo/tabitha-48x48.png 
+        DESTINATION share/tabitha/)
 
