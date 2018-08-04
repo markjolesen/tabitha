@@ -24,3 +24,11 @@ requirements, however.
 | NO     | pq            | PostgreSQL   | https://www.postgresql.org                    |`
 | NO     | GTK+-3.0      | GNU LGPL 2.1 | https://www.gtk.org                           |
 
+# Installation
+
+[Windows](doc/install/windows/readme.md)
+
+[Debian](doc/install/debian/readme.md)
+
+[Ubuntu](doc/install/ubuntu/readme.md)
+
