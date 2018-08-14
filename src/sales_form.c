@@ -1205,7 +1205,6 @@ on_sales_detail_edit_button_clicked(
   gchar*                                l_description;
   struct sales_detail*                  l_detail;
   GtkDialog*                            l_dialog;
-  GError*                               l_error;
   int                                   l_exit;
   GtkTreeIter                           l_iter;
   GtkTreeModel*                         l_model;
@@ -1219,7 +1218,6 @@ on_sales_detail_edit_button_clicked(
 
   l_detail= (struct sales_detail*)g_malloc0(sizeof(*l_detail));
 
-  l_error= 0;
   l_dialog= GTK_DIALOG(io_user_data);
   l_property= (struct property*)g_object_get_data(G_OBJECT(l_dialog), "property");
   l_session= (struct session*)g_object_get_data(G_OBJECT(l_dialog), "session");
@@ -1275,12 +1273,6 @@ on_sales_detail_edit_button_clicked(
   }while(0);
 
   g_free(l_detail);
-
-  if (l_error)
-  {
-    _error_display(GTK_WINDOW(l_dialog), l_error);
-    g_clear_error(&l_error);
-  }
 
   return;
 }
